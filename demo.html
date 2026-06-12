@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>hAI.CalBoard – Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #fff;
+      height: 100vh;
+      overflow: hidden;
+      background: #111;
+    }
+
+    /* DEMO BADGE */
+    #demo-badge {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255,193,7,0.92);
+      color: #111;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 18px;
+      border-radius: 20px;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    /* BACKGROUND */
+    #background {
+      position: fixed;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.45);
+      z-index: 0;
+      transition: background-image 1.8s ease-in-out;
+    }
+
+    /* MAIN OVERLAY */
+    #overlay {
+      position: relative;
+      z-index: 1;
+      padding: 48px 56px 40px 56px;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      grid-template-columns: 1fr 380px;
+      grid-template-areas:
+        "top-left top-right"
+        "calendar calendar";
+      gap: 32px 40px;
+    }
+
+    /* TOP LEFT: Zeit + Datum */
+    #time-block { grid-area: top-left; }
+    #time {
+      font-size: 7.5rem;
+      font-weight: 100;
+      line-height: 1;
+      letter-spacing: -4px;
+      text-shadow: 0 2px 24px rgba(0,0,0,0.5);
+    }
+    #date {
+      font-size: 1.5rem;
+      opacity: 0.8;
+      margin-top: 8px;
+      font-weight: 300;
+    }
+
+    /* TOP RIGHT: Wetter */
+    #weather-block {
+      grid-area: top-right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: flex-start;
+      gap: 4px;
+    }
+    #weather-city {
+      font-size: 1rem;
+      opacity: 0.6;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    #weather-main {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #weather-icon { width: 64px; filter: drop-shadow(0 0 8px rgba(255,255,255,0.3)); }
+    #weather-temp { font-size: 3.2rem; font-weight: 200; }
+    #weather-desc { font-size: 1rem; opacity: 0.75; }
+    #weather-feels { font-size: 0.85rem; opacity: 0.55; margin-top: 2px; }
+
+    /* CALENDAR */
+    #calendar-block {
+      grid-area: calendar;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #cal-header {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      opacity: 0.5;
+      margin-bottom: 2px;
+    }
+    #event-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 10px;
+    }
+    #event-list li {
+      background: rgba(255,255,255,0.10);
+      backdrop-filter: blur(8px);
+      border-left: 4px solid #4caf50;
+      padding: 11px 16px;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    #event-list li:hover { background: rgba(255,255,255,0.17); }
+    .event-title { font-weight: 500; }
+    .event-time {
+      font-size: 0.8rem;
+      opacity: 0.6;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .event-cal {
+      font-size: 0.72rem;
+      opacity: 0.45;
+      margin-top: 2px;
+    }
+
+    /* BG CONTROLS (Demo only) */
+    #bg-controls {
+      position: fixed;
+      bottom: 20px;
+      right: 24px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+    #bg-controls button {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      transition: background 0.2s;
+    }
+    #bg-controls button:hover { background: rgba(255,255,255,0.28); }
+  </style>
+</head>
+<body>
+
+<div id="demo-badge">📸 Demo – Beispieldaten</div>
+
+<div id="background"></div>
+
+<div id="overlay">
+
+  <!-- ZEIT -->
+  <div id="time-block">
+    <div id="time">--:--</div>
+    <div id="date">Lade...</div>
+  </div>
+
+  <!-- WETTER -->
+  <div id="weather-block">
+    <div id="weather-city">📍 Pfinztal</div>
+    <div id="weather-main">
+      <img id="weather-icon" src="https://openweathermap.org/img/wn/02d@2x.png" alt="">
+      <span id="weather-temp">22°C</span>
+    </div>
+    <div id="weather-desc">☀️ Leicht bewölkt</div>
+    <div id="weather-feels">🧣 Fühlt sich an wie 20°C</div>
+  </div>
+
+  <!-- KALENDER -->
+  <div id="calendar-block">
+    <div id="cal-header">🗓️ Nächste Termine</div>
+    <ul id="event-list"></ul>
+  </div>
+
+</div>
+
+<!-- Demo-Steuerung -->
+<div id="bg-controls">
+  <button onclick="prevBg()">❮ Hintergrund</button>
+  <button onclick="nextBg()">Hintergrund ❯</button>
+</div>
+
+<script>
+// ============================================================
+// DEMO-DATEN (simulieren Google Kalender Rückgabe)
+// ============================================================
+const DEMO_EVENTS = [
+  {
+    title: "Unterricht Klasse 8b – Technik",
+    start: offsetDate(0, 8, 0),
+    calendar: "Schule",
+    color: "#4caf50"
+  },
+  {
+    title: "Lehrerkonferenz",
+    start: offsetDate(0, 14, 0),
+    calendar: "Schule",
+    color: "#4caf50"
+  },
+  {
+    title: "Padel Training",
+    start: offsetDate(0, 18, 30),
+    calendar: "Freizeit",
+    color: "#2196f3"
+  },
+  {
+    title: "KSC – Heimspiel 💛",
+    start: offsetDate(1, 15, 30),
+    calendar: "Freizeit",
+    color: "#2196f3"
+  },
+  {
+    title: "Elternsprechtag",
+    start: offsetDate(1, 17, 0),
+    calendar: "Schule",
+    color: "#4caf50"
+  },
+  {
+    title: "Arzttermin",
+    start: offsetDate(2, 9, 30),
+    calendar: "Persönlich",
+    color: "#ff9800"
+  },
+  {
+    title: "Server-Wartung (FHEM Update)",
+    start: offsetDate(2, 20, 0),
+    calendar: "Technik",
+    color: "#9c27b0"
+  },
+  {
+    title: "Geburtstag 🎂",
+    start: offsetDate(3, 0, 0),
+    allDay: true,
+    calendar: "Familie",
+    color: "#e91e63"
+  },
+  {
+    title: "Fortbildung Medienbildung BW",
+    start: offsetDate(4, 9, 0),
+    calendar: "Schule",
+    color: "#4caf50"
+  },
+  {
+    title: "Fussball mit Freunden",
+    start: offsetDate(5, 17, 0),
+    calendar: "Freizeit",
+    color: "#2196f3"
+  }
+];
+
+function offsetDate(days, h, m) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+// ============================================================
+// HINTERGRÜNDE
+// ============================================================
+const BACKGROUNDS = [
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80",
+  "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80",
+  "https://images.unsplash.com/photo-1501854140801-50d01698950b?w=1920&q=80",
+  "https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=1920&q=80",
+  "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80"
+];
+let bgIndex = 0;
+
+function setBackground(idx) {
+  document.getElementById("background").style.backgroundImage =
+    `url('${BACKGROUNDS[idx % BACKGROUNDS.length]}')`;
+}
+function nextBg() { bgIndex++; setBackground(bgIndex); }
+function prevBg() { bgIndex--; setBackground(bgIndex); }
+
+// ============================================================
+// UHR
+// ============================================================
+function updateClock() {
+  const now = new Date();
+  document.getElementById("time").textContent =
+    now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  document.getElementById("date").textContent =
+    now.toLocaleDateString("de-DE", {
+      weekday: "long", day: "numeric",
+      month: "long", year: "numeric"
+    });
+}
+
+// ============================================================
+// KALENDER RENDER
+// ============================================================
+function renderCalendar() {
+  const list = document.getElementById("event-list");
+  list.innerHTML = "";
+  DEMO_EVENTS.forEach(ev => {
+    const li = document.createElement("li");
+    li.style.borderLeftColor = ev.color;
+    const timeStr = ev.allDay
+      ? "■ Ganztägig"
+      : ev.start.toLocaleString("de-DE", {
+          weekday: "short", day: "numeric", month: "short",
+          hour: "2-digit", minute: "2-digit"
+        });
+    li.innerHTML = `
+      <div class="event-title">${ev.title}</div>
+      <div class="event-time"><span>🕒</span>${timeStr}</div>
+      <div class="event-cal">📂 ${ev.calendar}</div>
+    `;
+    list.appendChild(li);
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+setBackground(bgIndex);
+updateClock();
+renderCalendar();
+setInterval(updateClock, 1000);
+setInterval(() => { bgIndex++; setBackground(bgIndex); }, 30000);
+</script>
+</body>
+</html>
