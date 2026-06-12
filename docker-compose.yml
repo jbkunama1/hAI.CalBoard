@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  dakboard:
+    build: .
+    container_name: hAI-CalBoard
+    ports:
+      - "4455:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app
+    restart: unless-stopped
