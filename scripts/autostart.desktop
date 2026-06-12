@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=hAI.CalBoard Kiosk
+Comment=Startet hAI.CalBoard im Kiosk-Modus
+Exec=bash /home/dietpi/hAI.CalBoard/scripts/kiosk.sh
+X-GNOME-Autostart-enabled=true
