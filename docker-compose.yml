@@ -5,8 +5,15 @@ services:
     container_name: hAI-CalBoard
     ports:
       - "4455:8080"
-    env_file:
-      - .env
+    environment:
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - GOOGLE_REFRESH_TOKEN=${GOOGLE_REFRESH_TOKEN:-}
+      - CALENDAR_IDS=${CALENDAR_IDS:-primary}
+      - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-}
+      - CITY=${CITY:-Pfinztal}
     volumes:
       - ./app:/app
       - calboard_data:/data
