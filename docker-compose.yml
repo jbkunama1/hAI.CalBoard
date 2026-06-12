@@ -9,4 +9,8 @@ services:
       - .env
     volumes:
       - ./app:/app
+      - calboard_data:/data
     restart: unless-stopped
+
+volumes:
+  calboard_data:
