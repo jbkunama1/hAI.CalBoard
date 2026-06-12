@@ -35,7 +35,13 @@
 
 ---
 
-## 🚀 Schnellstart
+## 🚀 Installation
+
+> Es gibt **drei Wege**, hAI.CalBoard zu installieren – wähle den für dich passenden:
+
+---
+
+### 🐳 Option 1 – Docker CLI (empfohlen)
 
 ```bash
 # 1. Repo klonen
@@ -44,16 +50,70 @@ cd hAI.CalBoard
 
 # 2. Umgebungsvariablen setzen
 cp .env.example .env
-joe .env   # oder nano, vim – echte Werte eintragen
+joe .env   # oder nano / vim
 
-# 3. Container starten
-docker compose up -d
+# 3. Container bauen & starten
+docker compose up -d --build
 
-# 4. Aufrufen
-open http://deine-ip:4455
+# 4. Logs prüfen
+docker logs -f hAI-CalBoard
 ```
 
-> 💡 **Tipp:** Für DietPi mit Firefox Kiosk-Modus einfach `http://localhost:4455` als Startseite setzen.
+> 📍 Aufruf: `http://deine-ip:4455`
+
+---
+
+### 📦 Option 2 – Portainer (Stack)
+
+1. **Portainer öffnen** → `Stacks` → `+ Add Stack`
+2. **Name:** `hAI-CalBoard`
+3. **Repository-Methode wählen:**
+   - → `Git Repository`
+   - URL: `https://github.com/jbkunama1/hAI.CalBoard`
+   - Compose-Pfad: `docker-compose.yml`
+4. **Environment Variables** eintragen (unter "Environment variables" im Stack-Editor):
+
+   | Variable | Wert |
+   |---|---|
+   | `GOOGLE_CLIENT_ID` | `dein_client_id` |
+   | `GOOGLE_CLIENT_SECRET` | `dein_secret` |
+   | `GOOGLE_REFRESH_TOKEN` | `dein_refresh_token` |
+   | `CALENDAR_IDS` | `primary` |
+   | `OPENWEATHER_API_KEY` | `dein_key` |
+   | `CITY` | `Pfinztal` |
+
+5. → **Deploy the stack** klicken
+6. Unter `Containers` → `hAI-CalBoard` → Port `4455` anklicken oder direkt aufrufen
+
+> 💡 **Alternativ:** Im Portainer Stack-Editor einfach den Inhalt von `docker-compose.yml` einfügen und die Variablen manuell als Env-Vars setzen – kein Git-Zugriff nötig.
+
+---
+
+### 🔧 Option 3 – Manuell ohne Docker (Bare Metal / Entwicklung)
+
+> Nützlich für lokales Testen oder wenn kein Docker verfügbar ist.
+
+```bash
+# 1. Repo klonen
+git clone https://github.com/jbkunama1/hAI.CalBoard.git
+cd hAI.CalBoard
+
+# 2. Python-Abhängigkeiten installieren
+pip install flask requests flask-cors gunicorn
+
+# 3. Umgebungsvariablen setzen
+cp .env.example .env
+source .env   # oder export VAR=wert einzeln
+
+# 4. Server starten
+cd app
+python server.py
+
+# alternativ mit Gunicorn (produktionsreifer):
+gunicorn --bind 0.0.0.0:4455 server:app
+```
+
+> 📍 Aufruf: `http://localhost:4455`
 
 ---
 
@@ -135,6 +195,25 @@ hAI.CalBoard/
 | Wetter lädt nicht | API Key prüfen, `CITY` korrekt schreiben |
 | Port 4455 belegt | `docker-compose.yml` → Port ändern |
 | Hintergrund lädt nicht | Unsplash-URL im Browser testen |
+| Portainer: Build schlägt fehl | Sicherstellen, dass `Dockerfile` im Repo-Root liegt |
+| Bare Metal: ImportError | `pip install flask requests flask-cors gunicorn` wiederholen |
+
+---
+
+## 📝 Tipps für DietPi / Kiosk-Betrieb
+
+```bash
+# Firefox im Kiosk-Modus auf LXDE-Autostart
+mkdir -p ~/.config/autostart
+cat > ~/.config/autostart/calboard.desktop << EOF
+[Desktop Entry]
+Type=Application
+Name=hAI.CalBoard
+Exec=bash -c "sleep 10 && firefox --kiosk http://localhost:4455"
+EOF
+```
+
+> 💡 `sleep 10` gibt dem Container Zeit zum Starten bevor der Browser öffnet.
 
 ---
 
