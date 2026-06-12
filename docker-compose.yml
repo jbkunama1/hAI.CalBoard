@@ -15,7 +15,6 @@ services:
       - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-}
       - CITY=${CITY:-Pfinztal}
     volumes:
-      - ./app:/app
       - calboard_data:/data
     restart: unless-stopped
     healthcheck:
