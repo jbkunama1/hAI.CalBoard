@@ -16,6 +16,9 @@
 [![Google Calendar](https://img.shields.io/badge/Google%20Calendar-API-4285F4?style=for-the-badge&logo=googlecalendar&logoColor=white)](https://developers.google.com/calendar)
 [![OpenWeatherMap](https://img.shields.io/badge/OpenWeatherMap-API-EB6E4B?style=for-the-badge&logo=openweathermap&logoColor=white)](https://openweathermap.org)
 [![Self-Hosted](https://img.shields.io/badge/Self--Hosted-✔-brightgreen?style=for-the-badge)](https://github.com/jbkunama1/hAI.CalBoard)
+[![Admin Panel](https://img.shields.io/badge/Admin-Panel-9c27b0?style=for-the-badge&logo=googlechrome&logoColor=white)](app/static/admin.html)
+
+🇩🇪 Deutsch | [🇬🇧 English](README_EN.md)
 
 </div>
 
@@ -28,50 +31,57 @@
 | 🗓️ **Google Kalender** | Mehrere Kalender via OAuth2 Refresh Token, alle 5 Min aktualisiert |
 | 🌤️ **Wetter** | OpenWeatherMap API, Echtzeit, auf Deutsch |
 | 🕐 **Uhrzeit & Datum** | Sekundengenau, deutsche Lokalisierung |
-| 🖼️ **Hintergrundwechsel** | Unsplash Random, alle 30 Minuten |
+| 🖼️ **Hintergrundwechsel** | Unsplash oder eigene Bilder, Intervall einstellbar |
 | 🐳 **Docker-Ready** | Läuft als Container, Port `4455` |
 | 🔒 **Sicher** | `.env` nie im Repo, Refresh Token lokal |
 | 🏠 **Self-Hosted** | Kein Cloud-Abo, kein Tracking |
+| 🛠️ **Admin-Panel** | Passwortgeschütztes Web-UI unter `/admin` |
+
+---
+
+## 🛠️ Admin-Panel
+
+Erreichbar unter **`http://deine-ip:4455/admin`** – passwortgeschützt via `ADMIN_PASSWORD` in der `.env`.
+
+| Bereich | Funktion |
+|---|---|
+| 📊 **Dashboard** | Status-Übersicht aller Konfigurationspunkte |
+| 🔑 **Google Auth** | Client ID/Secret eintragen, OAuth-Flow starten, Token testen |
+| 🗓️ **Kalender** | Verfügbare Kalender laden, per Toggle auswählen |
+| 🎨 **Design** | Schriftart, -größe, Akzentfarbe, Layout, Termin-Stil |
+| 🖼️ **Hintergründe** | Unsplash-Query, eigene Bilder per Drag & Drop, Helligkeit & Intervall |
+| ⚙️ **Anzeige** | Wetter / Kalender / Sekunden ein-/ausblenden |
+| 🌤️ **Wetter** | Stadt und OpenWeatherMap API Key setzen |
+
+> Alle Einstellungen werden in `/data/settings.json` (Docker Volume) persistent gespeichert.
 
 ---
 
 ## 🚀 Installation
 
-> Es gibt **drei Wege**, hAI.CalBoard zu installieren – wähle den für dich passenden:
-
----
+> Es gibt **drei Wege** – wähle den für dich passenden:
 
 ### 🐳 Option 1 – Docker CLI (empfohlen)
 
 ```bash
-# 1. Repo klonen
 git clone https://github.com/jbkunama1/hAI.CalBoard.git
 cd hAI.CalBoard
-
-# 2. Umgebungsvariablen setzen
 cp .env.example .env
-joe .env   # oder nano / vim
-
-# 3. Container bauen & starten
+joe .env                        # echte Werte eintragen
 docker compose up -d --build
-
-# 4. Logs prüfen
 docker logs -f hAI-CalBoard
 ```
 
-> 📍 Aufruf: `http://deine-ip:4455`
+> 📍 Dashboard: `http://deine-ip:4455` · Admin: `http://deine-ip:4455/admin`
 
 ---
 
 ### 📦 Option 2 – Portainer (Stack)
 
-1. **Portainer öffnen** → `Stacks` → `+ Add Stack`
+1. **Portainer** → `Stacks` → `+ Add Stack`
 2. **Name:** `hAI-CalBoard`
-3. **Repository-Methode wählen:**
-   - → `Git Repository`
-   - URL: `https://github.com/jbkunama1/hAI.CalBoard`
-   - Compose-Pfad: `docker-compose.yml`
-4. **Environment Variables** eintragen (unter "Environment variables" im Stack-Editor):
+3. **Git Repository** → URL: `https://github.com/jbkunama1/hAI.CalBoard` · Compose-Pfad: `docker-compose.yml`
+4. **Environment Variables** eintragen:
 
    | Variable | Wert |
    |---|---|
@@ -81,64 +91,41 @@ docker logs -f hAI-CalBoard
    | `CALENDAR_IDS` | `primary` |
    | `OPENWEATHER_API_KEY` | `dein_key` |
    | `CITY` | `Pfinztal` |
+   | `ADMIN_PASSWORD` | `dein_sicheres_passwort` |
+   | `SECRET_KEY` | `zufaelliger_langer_string` |
 
-5. → **Deploy the stack** klicken
-6. Unter `Containers` → `hAI-CalBoard` → Port `4455` anklicken oder direkt aufrufen
+5. → **Deploy the stack**
 
-> 💡 **Alternativ:** Im Portainer Stack-Editor einfach den Inhalt von `docker-compose.yml` einfügen und die Variablen manuell als Env-Vars setzen – kein Git-Zugriff nötig.
+> 💡 Alternativ: Inhalt von `docker-compose.yml` direkt einfügen, kein Git-Zugriff nötig.
 
 ---
 
-### 🔧 Option 3 – Manuell ohne Docker (Bare Metal / Entwicklung)
-
-> Nützlich für lokales Testen oder wenn kein Docker verfügbar ist.
+### 🔧 Option 3 – Manuell / Bare Metal
 
 ```bash
-# 1. Repo klonen
 git clone https://github.com/jbkunama1/hAI.CalBoard.git
 cd hAI.CalBoard
-
-# 2. Python-Abhängigkeiten installieren
-pip install flask requests flask-cors gunicorn
-
-# 3. Umgebungsvariablen setzen
-cp .env.example .env
-source .env   # oder export VAR=wert einzeln
-
-# 4. Server starten
-cd app
-python server.py
-
-# alternativ mit Gunicorn (produktionsreifer):
-gunicorn --bind 0.0.0.0:4455 server:app
+pip install flask requests flask-cors gunicorn werkzeug
+cp .env.example .env && source .env
+cd app && gunicorn --bind 0.0.0.0:4455 server:app
 ```
-
-> 📍 Aufruf: `http://localhost:4455`
 
 ---
 
 ## 🔑 Google OAuth Setup
 
-> Einmalig nötig – danach läuft alles automatisch über den Refresh Token.
+> Einmalig nötig – danach automatisch via Refresh Token. **Empfohlen: direkt im Admin-Panel unter `/admin` → Google Auth.**
 
 ```
-1. 🌐  Google Cloud Console → Neues Projekt anlegen
-       https://console.cloud.google.com
-
+1. 🌐  https://console.cloud.google.com → Neues Projekt
 2. 📅  Google Calendar API aktivieren
-       APIs & Dienste → Bibliothek → "Google Calendar API"
-
-3. 🔐  OAuth 2.0 Client ID erstellen
-       Typ: Web-Anwendung
-       Redirect URI: https://developers.google.com/oauthplayground
-
-4. 🎮  OAuth Playground öffnen
-       https://developers.google.com/oauthplayground
-       ⚙️ Einstellungen → "Use your own OAuth credentials"
-       Scope: https://www.googleapis.com/auth/calendar.readonly
-
-5. ✅  Authorize → Exchange → Refresh Token kopieren → in .env eintragen
+3. 🔐  OAuth 2.0 Client ID (Web) erstellen
+       Redirect URI: http://deine-ip:4455/api/admin/oauth/callback
+4. 🛠️  Im Admin-Panel: Client ID & Secret eintragen → "Mit Google anmelden"
+5. ✅  Refresh Token wird automatisch gespeichert
 ```
+
+> Alternativ manuell über [OAuth Playground](https://developers.google.com/oauthplayground) mit Scope `https://www.googleapis.com/auth/calendar.readonly`.
 
 ---
 
@@ -150,10 +137,12 @@ gunicorn --bind 0.0.0.0:4455 server:app
 |---|:---:|---|---|
 | `GOOGLE_CLIENT_ID` | ✅ | `123...apps.googleusercontent.com` | OAuth Client ID |
 | `GOOGLE_CLIENT_SECRET` | ✅ | `GOCSPX-...` | OAuth Client Secret |
-| `GOOGLE_REFRESH_TOKEN` | ✅ | `1//04...` | Refresh Token (einmalig generiert) |
-| `CALENDAR_IDS` | ✅ | `primary,work@gmail.com` | Kommagetrennte Kalender-IDs |
+| `GOOGLE_REFRESH_TOKEN` | ⚠️ | `1//04...` | Refresh Token (via Admin-Panel oder manuell) |
+| `CALENDAR_IDS` | ⚠️ | `primary,work@gmail.com` | Fallback, wird im Admin überschrieben |
 | `OPENWEATHER_API_KEY` | ✅ | `abc123...` | Kostenlos auf openweathermap.org |
 | `CITY` | ✅ | `Pfinztal` | Stadt für Wetteranzeige |
+| `ADMIN_PASSWORD` | ✅ | `sicheres_passwort` | Zugang zum Admin-Panel |
+| `SECRET_KEY` | ✅ | `langer_zufaelliger_string` | Flask Session-Key |
 
 ---
 
@@ -161,16 +150,18 @@ gunicorn --bind 0.0.0.0:4455 server:app
 
 ```
 hAI.CalBoard/
-├── 🐳 docker-compose.yml      # Container-Definition (Port 4455)
-├── 🐋 Dockerfile               # Python 3.11 + Flask + Gunicorn
-├── 🔒 .env.example             # Vorlage für Umgebungsvariablen
-├── 🚫 .gitignore               # .env wird nicht eingecheckt
+├── 🐳 docker-compose.yml
+├── 🐋 Dockerfile
+├── 🔒 .env.example
+├── 🚫 .gitignore
+├── 📄 demo.html                # Offline-Demo mit Beispieldaten
 └── 📁 app/
-    ├── 🐍 server.py            # Flask-Backend (Calendar & Weather API)
+    ├── 🐍 server.py            # Flask-Backend (API + Admin-Routen)
     └── 📁 static/
-        ├── 🌐 index.html       # Dashboard-Layout
-        ├── 🎨 style.css        # Dark Overlay + Glassmorphism
-        └── ⚡ app.js           # Frontend-Logik + Polling
+        ├── 🌐 index.html       # Dashboard (DE)
+        ├── 🌐 index_en.html    # Dashboard (EN)
+        ├── 🛠️ admin.html       # Admin-Panel
+        └── 📄 demo.html        # Demo
 ```
 
 ---
@@ -181,7 +172,7 @@ hAI.CalBoard/
 🕐 Uhrzeit        →  jede Sekunde
 🌤️ Wetter         →  alle 10 Minuten
 🗓️ Kalender       →  alle 5 Minuten
-🖼️ Hintergrund    →  alle 30 Minuten
+🖼️ Hintergrund    →  konfigurierbar (Standard: 30 Min)
 ```
 
 ---
@@ -191,19 +182,18 @@ hAI.CalBoard/
 | Problem | Lösung |
 |---|---|
 | Container startet nicht | `docker logs hAI-CalBoard` prüfen |
-| Kalender leer | Refresh Token abgelaufen → neu generieren |
-| Wetter lädt nicht | API Key prüfen, `CITY` korrekt schreiben |
-| Port 4455 belegt | `docker-compose.yml` → Port ändern |
-| Hintergrund lädt nicht | Unsplash-URL im Browser testen |
-| Portainer: Build schlägt fehl | Sicherstellen, dass `Dockerfile` im Repo-Root liegt |
-| Bare Metal: ImportError | `pip install flask requests flask-cors gunicorn` wiederholen |
+| Admin-Login schlägt fehl | `ADMIN_PASSWORD` in `.env` prüfen |
+| Kalender leer | Im Admin → Google Auth → Verbindung testen |
+| Wetter lädt nicht | API Key im Admin → Wetter eintragen |
+| Port 4455 belegt | `docker-compose.yml` → Port anpassen |
+| Portainer: Build schlägt fehl | `Dockerfile` muss im Repo-Root liegen |
+| Einstellungen gehen verloren | Docker Volume `calboard_data` prüfen |
 
 ---
 
-## 📝 Tipps für DietPi / Kiosk-Betrieb
+## 📝 DietPi / Kiosk-Betrieb
 
 ```bash
-# Firefox im Kiosk-Modus auf LXDE-Autostart
 mkdir -p ~/.config/autostart
 cat > ~/.config/autostart/calboard.desktop << EOF
 [Desktop Entry]
@@ -213,19 +203,15 @@ Exec=bash -c "sleep 10 && firefox --kiosk http://localhost:4455"
 EOF
 ```
 
-> 💡 `sleep 10` gibt dem Container Zeit zum Starten bevor der Browser öffnet.
-
 ---
 
 ## 📄 Lizenz
 
+[![MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
+
 ```
 MIT License – © 2026 Daniel Lienhard
 ```
-
-[![MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-
----
 
 <div align="center">
 Made with ❤️ in Pfinztal · Powered by Flask, Docker & Google Calendar API
