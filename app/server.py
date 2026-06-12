@@ -1,13 +1,25 @@
 from flask import Flask, jsonify, send_from_directory, request, session, redirect, url_for
 from flask_cors import CORS
-import requests, os, json
+import requests, os, json, secrets
 from datetime import datetime, timezone
 from functools import wraps
 from werkzeug.utils import secure_filename
 import hashlib
+import sys
+
+# ─── STARTUP CHECKS ──────────────────────────────────────────────────
+def _require_env(var):
+    val = os.environ.get(var, '')
+    if not val:
+        print(f'[FATAL] Umgebungsvariable {var} ist nicht gesetzt. Server wird nicht gestartet.', flush=True)
+        sys.exit(1)
+    return val
+
+ADMIN_PASSWORD = _require_env('ADMIN_PASSWORD')
+SECRET_KEY     = _require_env('SECRET_KEY')
 
 app = Flask(__name__, static_folder='static')
-app.secret_key = os.environ.get('SECRET_KEY', 'change-me-in-env')
+app.secret_key = SECRET_KEY
 CORS(app)
 
 SETTINGS_FILE = '/data/settings.json'
@@ -87,8 +99,7 @@ def get_access_token(settings=None):
 def admin_login():
     data = request.json
     pw = data.get('password', '')
-    admin_pw = os.environ.get('ADMIN_PASSWORD', 'admin123')
-    if hashlib.sha256(pw.encode()).hexdigest() == hashlib.sha256(admin_pw.encode()).hexdigest():
+    if hashlib.sha256(pw.encode()).hexdigest() == hashlib.sha256(ADMIN_PASSWORD.encode()).hexdigest():
         session['admin'] = True
         return jsonify({'ok': True})
     return jsonify({'error': 'Falsches Passwort'}), 403
@@ -107,42 +118,49 @@ def admin_check():
 @admin_required
 def get_settings():
     s = load_settings()
-    # Secrets maskieren fuer Anzeige
     safe = s.copy()
     for k in ['google_client_secret', 'google_refresh_token', 'openweather_api_key']:
-        if safe.get(k): safe[k] = safe[k][:6] + '••••••••'
+        if safe.get(k): safe[k] = safe[k][:6] + 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢'
     return jsonify(safe)
 
 @app.route('/api/admin/settings', methods=['POST'])
 @admin_required
 def update_settings():
     data = request.json
-    # Maskierte Werte nicht ueberschreiben
     for k in ['google_client_secret', 'google_refresh_token', 'openweather_api_key']:
-        if data.get(k, '').endswith('••••••••'):
+        if data.get(k, '').endswith('â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢'):
             data.pop(k)
     s = save_settings(data)
     return jsonify({'ok': True})
 
-# ─── GOOGLE OAUTH ────────────────────────────────────────────────────
+# ─── GOOGLE OAUTH (mit State-Parameter gegen CSRF) ───────────────────
 @app.route('/api/admin/oauth/url')
 @admin_required
 def oauth_url():
     s = load_settings()
     client_id = s.get('google_client_id', '')
     redirect_uri = request.host_url.rstrip('/') + '/api/admin/oauth/callback'
+    # CSRF-Schutz: zufaelliger State wird in der Session gespeichert
+    state = secrets.token_urlsafe(32)
+    session['oauth_state'] = state
     url = (
         'https://accounts.google.com/o/oauth2/v2/auth'
         f'?client_id={client_id}'
         '&redirect_uri=' + requests.utils.quote(redirect_uri) +
         '&response_type=code'
         '&scope=' + requests.utils.quote('https://www.googleapis.com/auth/calendar.readonly') +
-        '&access_type=offline&prompt=consent'
+        f'&access_type=offline&prompt=consent&state={state}'
     )
     return jsonify({'url': url, 'redirect_uri': redirect_uri})
 
 @app.route('/api/admin/oauth/callback')
 def oauth_callback():
+    # State-Validierung (CSRF-Schutz)
+    returned_state = request.args.get('state', '')
+    expected_state = session.pop('oauth_state', None)
+    if not expected_state or not secrets.compare_digest(returned_state, expected_state):
+        return redirect('/admin?oauth=csrf_error')
+
     code = request.args.get('code')
     s = load_settings()
     redirect_uri = request.host_url.rstrip('/') + '/api/admin/oauth/callback'
