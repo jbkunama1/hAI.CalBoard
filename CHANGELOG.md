@@ -5,15 +5,29 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [1.1.0] – 2026-06-13
+
+### Added
+- 🎨 Neues Theme-System mit 6 Dashboard-Themes: Classic, Month, Focus, Weather, Compact und Split
+- 🧩 Theme-Picker im Admin-Panel mit visuellen SVG-Vorschaukarten
+- 📅 Monatsansicht mit vollflächigem Kalender-Raster und farbigen Event-Chips
+- ⭐ Neues Split-Layout mit Uhr/Wetter links und Monatsraster rechts
+- 📘 README.md und README_EN.md auf aktuellen Funktionsstand gebracht
+
+### Changed
+- 🛠️ Design-Bereich im Admin-Panel zu „Design & Theme" erweitert
+- 📋 Dokumentation an aktuellen UI- und Feature-Stand angepasst
+- 🧱 Dashboard-Frontend strukturell auf mehrere Theme-Layouts erweitert
+- 🎯 Compact- und Weather-Theme nutzen themenspezifisch reduzierte Event-Anzahl
+
 ## [1.0.0] – 2026-06-12
 
 ### Added
 - 🎞️ Dashboard mit Echtzeit-Uhrzeit, Datum, Google Kalender & Wetter
-- 🇩🇪 Deutsche & 🇬🇧 Englische Dashboard-Version (`index.html` / `index_en.html`)
 - 🛠️ Passwortgeschütztes Admin-Panel unter `/admin`
 - 🔑 Google OAuth2-Flow direkt im Browser (inkl. CSRF-Schutz via State-Parameter)
 - 🗓️ Kalender-Auswahl per Toggle im Admin-Panel
-- 🎨 Design-Konfiguration: Schriftart, -größe, Akzentfarbe, Layout, Termin-Stil
+- 🎨 Design-Konfiguration: Schriftart, -größe, Akzentfarbe
 - 🖼️ Hintergrund-Verwaltung: Unsplash-Query + eigene Bilder per Drag & Drop
 - 🌤️ Wetter-Konfiguration (Stadt + API-Key) im Admin
 - 🐳 Docker-Ready mit `docker-compose.yml` inkl. Healthcheck & Volume
@@ -29,6 +43,6 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 ### Security
 - `ADMIN_PASSWORD` & `SECRET_KEY` sind Pflicht – Server startet nicht ohne sie
 - OAuth State-Parameter (CSRF-Schutz) via `secrets.token_urlsafe(32)`
-- Secrets im Admin-Panel maskiert (`abc123â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢`)
+- Secrets im Admin-Panel maskiert
 - `.env` in `.gitignore` – nie im Repo
 - TruffleHog Workflow aktiv
