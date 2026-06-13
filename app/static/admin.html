@@ -13,21 +13,70 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
+
+    /* ── LOGIN ── */
     #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
     .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 40px; width: 360px; text-align: center; }
     .login-box h1 { font-size: 1.5rem; margin-bottom: 8px; }
     .login-box p { color: var(--muted); margin-bottom: 24px; }
-    #admin-panel { display: none; }
-    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-    header h1 { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    .header-actions { display: flex; gap: 8px; align-items: center; }
-    .main { max-width: 960px; margin: 0 auto; padding: 24px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
-    .card h3 { font-size: .95rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } }
+
+    /* ── SHELL ── */
+    #admin-panel { display: none; height: 100vh; overflow: hidden; flex-direction: row; }
+    #admin-panel.visible { display: flex; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      height: 100vh; overflow-y: auto;
+    }
+    .sidebar-header {
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: .95rem; font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .nav-section-label {
+      padding: 14px 16px 4px;
+      font-size: .72rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .6px; font-weight: 600;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 16px; margin: 1px 8px; border-radius: 6px;
+      cursor: pointer; font-size: .875rem;
+      color: var(--muted); transition: background .15s, color .15s;
+      user-select: none;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: var(--surface2); color: var(--text); font-weight: 600; }
+    .nav-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+    .sidebar-footer {
+      margin-top: auto; padding: 12px 8px;
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .sidebar-footer a, .sidebar-footer button {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-radius: 6px; font-size: .875rem;
+      color: var(--muted); background: none; border: none; cursor: pointer;
+      text-decoration: none; transition: background .15s, color .15s;
+      width: 100%;
+    }
+    .sidebar-footer a:hover, .sidebar-footer button:hover { background: var(--surface2); color: var(--text); }
+
+    /* ── CONTENT AREA ── */
+    .content-area { flex: 1; overflow-y: auto; padding: 28px 32px; }
+    .section { display: none; max-width: 840px; }
+    .section.active { display: block; }
+    .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+
+    /* ── CARDS ── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+    .card h3 { font-size: .9rem; font-weight: 600; margin-bottom: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 580px) { .grid2 { grid-template-columns: 1fr; } }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-group label { font-size: .8rem; color: var(--muted); }
     .form-input { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 7px 10px; font-size: .85rem; width: 100%; transition: border-color .2s; }
@@ -36,6 +85,8 @@
     input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
     .range-val { color: var(--accent); font-weight: 600; }
     select.form-input { cursor: pointer; }
+
+    /* ── BUTTONS ── */
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; border: none; font-size: .85rem; font-weight: 500; cursor: pointer; transition: all .2s; }
     .btn-primary { background: var(--accent2); color: #fff; }
     .btn-primary:hover { background: #388bfd; }
@@ -44,13 +95,19 @@
     .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
     .btn-danger:hover { background: var(--danger); color: #fff; }
     .btn-sm { padding: 4px 10px; font-size: .8rem; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+
+    /* ── TOGGLE ── */
     .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: .3s; }
     .slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .3s; }
     input:checked + .slider { background: var(--accent2); }
     input:checked + .slider:before { transform: translateX(20px); }
-    .section-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 20px 0 12px; font-weight: 600; }
+    .inline-group { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+    .inline-group label { font-size: .85rem; }
+
+    /* ── THEME CARDS ── */
     .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 4px; }
     .theme-card { border: 2px solid var(--border); border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color .2s, transform .15s; }
     .theme-card:hover { border-color: var(--accent); transform: translateY(-2px); }
@@ -59,31 +116,50 @@
     .theme-preview svg { display: block; width: 100%; height: 100%; }
     .theme-name { padding: 6px 8px 2px; font-size: .8rem; font-weight: 600; }
     .theme-desc { padding: 0 8px 8px; font-size: .72rem; color: var(--muted); }
+
+    /* ── IMAGE UPLOAD ── */
     .img-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px,1fr)); gap: 8px; margin-top: 8px; }
     .img-item { position: relative; aspect-ratio: 16/9; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
     .img-item img { width: 100%; height: 100%; object-fit: cover; }
     .img-item button { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,.7); border: none; color: #fff; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: .75rem; }
     .upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: border-color .2s; color: var(--muted); }
     .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); color: var(--text); }
+
+    /* ── CALENDAR LIST ── */
     .cal-list { list-style: none; }
     .cal-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
     .cal-item:last-child { border: none; }
     .cal-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .cal-name { flex: 1; font-size: .85rem; }
+
+    /* ── SUB LABELS ── */
+    .sub-label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 18px 0 10px; }
+    .sub-label:first-child { margin-top: 0; }
+
+    /* ── TOAST ── */
     #toast { position: fixed; bottom: 24px; right: 24px; padding: 10px 18px; border-radius: 8px; font-size: .85rem; font-weight: 500; opacity: 0; transform: translateY(8px); transition: all .3s; pointer-events: none; z-index: 9999; }
     #toast.show { opacity: 1; transform: translateY(0); }
     #toast.ok { background: var(--success); color: #fff; }
     #toast.err { background: var(--danger); color: #fff; }
-    .full-width { grid-column: 1/-1; }
-    .inline-group { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
-    .inline-group label { font-size: .85rem; }
+
+    /* ── MISC ── */
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
     .code-hint { font-family: monospace; background: var(--bg); padding: 8px 12px; border-radius: 6px; font-size: .8rem; color: var(--muted); word-break: break-all; border: 1px solid var(--border); margin-top: 8px; }
+
+    /* ── RESPONSIVE: Sidebar collapse ── */
+    @media (max-width: 680px) {
+      .sidebar { width: 52px; }
+      .sidebar-header span, .nav-item span, .nav-section-label,
+      .sidebar-footer a span, .sidebar-footer button span { display: none; }
+      .nav-item { justify-content: center; margin: 1px 4px; }
+      .content-area { padding: 16px; }
+    }
   </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <h1>🗓️ hAI.CalBoard</h1>
@@ -99,22 +175,55 @@
   </div>
 </div>
 
+<!-- ADMIN PANEL -->
 <div id="admin-panel">
-  <header>
-    <h1>🗓️ hAI.CalBoard <span style="color:var(--muted);font-weight:400">Admin</span></h1>
-    <div class="header-actions">
-      <a href="/" target="_blank" class="btn btn-secondary btn-sm">🖥️ Dashboard</a>
-      <button class="btn btn-secondary btn-sm" onclick="doLogout()">Abmelden</button>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <span>🗓️</span>
+      <span>hAI.CalBoard</span>
     </div>
-  </header>
 
-  <div class="main">
-    <div class="grid">
+    <div class="nav-section-label"><span>Daten</span></div>
+    <div class="nav-item active" data-section="sec-calendar" onclick="showSection('sec-calendar',this)">
+      <span class="icon">📅</span><span>Google Kalender</span>
+    </div>
+    <div class="nav-item" data-section="sec-weather" onclick="showSection('sec-weather',this)">
+      <span class="icon">🌤️</span><span>Wetter</span>
+    </div>
 
-      <!-- GOOGLE KALENDER -->
-      <div class="card full-width">
-        <h3>📅 Google Kalender</h3>
-        <div class="form-grid">
+    <div class="nav-section-label"><span>Darstellung</span></div>
+    <div class="nav-item" data-section="sec-display" onclick="showSection('sec-display',this)">
+      <span class="icon">⚙️</span><span>Anzeige</span>
+    </div>
+    <div class="nav-item" data-section="sec-background" onclick="showSection('sec-background',this)">
+      <span class="icon">🖼️</span><span>Hintergrund</span>
+    </div>
+    <div class="nav-item" data-section="sec-theme" onclick="showSection('sec-theme',this)">
+      <span class="icon">🎨</span><span>Theme</span>
+    </div>
+    <div class="nav-item" data-section="sec-design" onclick="showSection('sec-design',this)">
+      <span class="icon">✏️</span><span>Schrift & Farbe</span>
+    </div>
+    <div class="nav-item" data-section="sec-customizer" onclick="showSection('sec-customizer',this)">
+      <span class="icon">🎛️</span><span>Theme-Anpassung</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="/" target="_blank"><span class="icon">🖥️</span><span>Dashboard öffnen</span></a>
+      <button onclick="doLogout()"><span class="icon">🚪</span><span>Abmelden</span></button>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div class="content-area">
+
+    <!-- 📅 GOOGLE KALENDER -->
+    <div class="section active" id="sec-calendar">
+      <div class="section-title">📅 Google Kalender</div>
+      <div class="card">
+        <div class="grid2">
           <div class="form-group">
             <label>Google Client ID</label>
             <input type="text" class="form-input" id="s_google_client_id" placeholder="xxx.apps.googleusercontent.com">
@@ -132,31 +241,39 @@
             <input type="text" class="form-input" id="s_calendar_ids" placeholder="primary, id@group.calendar...">
           </div>
         </div>
-        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+        <div class="btn-row">
           <button class="btn btn-secondary" onclick="saveGoogle()">💾 Speichern</button>
           <button class="btn btn-primary" onclick="connectGoogle()">🔗 Google verbinden (OAuth)</button>
           <button class="btn btn-secondary" onclick="loadCalendars()">📋 Kalender laden</button>
         </div>
         <ul class="cal-list" id="cal-list" style="margin-top:12px;"></ul>
       </div>
+    </div>
 
-      <!-- WETTER -->
+    <!-- 🌤️ WETTER -->
+    <div class="section" id="sec-weather">
+      <div class="section-title">🌤️ Wetter</div>
       <div class="card">
-        <h3>🌤️ Wetter</h3>
-        <div class="form-group" style="margin-bottom:10px">
-          <label>OpenWeatherMap API Key</label>
-          <input type="text" class="form-input" id="s_openweather_api_key" placeholder="API Key">
+        <div class="grid2">
+          <div class="form-group">
+            <label>OpenWeatherMap API Key</label>
+            <input type="text" class="form-input" id="s_openweather_api_key" placeholder="API Key">
+          </div>
+          <div class="form-group">
+            <label>Stadt</label>
+            <input type="text" class="form-input" id="s_city" placeholder="z.B. Pfinztal">
+          </div>
         </div>
-        <div class="form-group">
-          <label>Stadt</label>
-          <input type="text" class="form-input" id="s_city" placeholder="z.B. Pfinztal">
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveWeather()">💾 Speichern</button>
         </div>
-        <button class="btn btn-primary" onclick="saveWeather()" style="margin-top:14px">💾 Speichern</button>
       </div>
+    </div>
 
-      <!-- ANZEIGE -->
+    <!-- ⚙️ ANZEIGE -->
+    <div class="section" id="sec-display">
+      <div class="section-title">⚙️ Anzeige</div>
       <div class="card">
-        <h3>⚙️ Anzeige</h3>
         <div style="display:flex;flex-direction:column;gap:10px">
           <div class="inline-group">
             <label>Wetter anzeigen</label>
@@ -170,41 +287,47 @@
             <label>Sekunden anzeigen</label>
             <label class="toggle"><input type="checkbox" id="s_show_seconds"><span class="slider"></span></label>
           </div>
-          <div class="form-group">
+          <div class="form-group" style="margin-top:4px">
             <label>Max. Events: <span class="range-val" id="v_max_events">8</span></label>
             <input type="range" id="s_max_events" min="1" max="20" step="1"
               oninput="document.getElementById('v_max_events').textContent=this.value">
           </div>
         </div>
-        <button class="btn btn-primary" onclick="saveDisplay()" style="margin-top:14px">💾 Speichern</button>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveDisplay()">💾 Speichern</button>
+        </div>
       </div>
+    </div>
 
-      <!-- HINTERGRUND -->
+    <!-- 🖼️ HINTERGRUND -->
+    <div class="section" id="sec-background">
+      <div class="section-title">🖼️ Hintergrund</div>
       <div class="card">
-        <h3>🖼️ Hintergrund</h3>
-        <div class="form-group" style="margin-bottom:10px">
-          <label>Modus</label>
-          <select class="form-input" id="s_bg_mode" onchange="toggleBgMode()">
-            <option value="unsplash">Unsplash (automatisch)</option>
-            <option value="custom">Eigene Bilder</option>
-            <option value="color">Farbe / Gradient</option>
-          </select>
-        </div>
-        <div id="bg-unsplash-opts">
-          <div class="form-group" style="margin-bottom:10px">
-            <label>Unsplash Suche</label>
-            <input type="text" class="form-input" id="s_bg_unsplash_query" placeholder="nature,landscape">
+        <div class="grid2">
+          <div class="form-group">
+            <label>Modus</label>
+            <select class="form-input" id="s_bg_mode" onchange="toggleBgMode()">
+              <option value="unsplash">Unsplash (automatisch)</option>
+              <option value="custom">Eigene Bilder</option>
+              <option value="color">Farbe / Gradient</option>
+            </select>
           </div>
-        </div>
-        <div class="form-group" style="margin-bottom:10px">
-          <label>Wechsel (Minuten): <span class="range-val" id="v_bg_interval">30</span></label>
-          <input type="range" id="s_bg_interval" min="1" max="120" step="1"
-            oninput="document.getElementById('v_bg_interval').textContent=this.value">
-        </div>
-        <div class="form-group">
-          <label>Helligkeit: <span class="range-val" id="v_bg_brightness">45%</span></label>
-          <input type="range" id="s_bg_brightness" min="0" max="1" step="0.05"
-            oninput="document.getElementById('v_bg_brightness').textContent=Math.round(this.value*100)+'%'">
+          <div id="bg-unsplash-opts">
+            <div class="form-group">
+              <label>Unsplash Suche</label>
+              <input type="text" class="form-input" id="s_bg_unsplash_query" placeholder="nature,landscape">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Wechsel (Minuten): <span class="range-val" id="v_bg_interval">30</span></label>
+            <input type="range" id="s_bg_interval" min="1" max="120" step="1"
+              oninput="document.getElementById('v_bg_interval').textContent=this.value">
+          </div>
+          <div class="form-group">
+            <label>Helligkeit: <span class="range-val" id="v_bg_brightness">45%</span></label>
+            <input type="range" id="s_bg_brightness" min="0" max="1" step="0.05"
+              oninput="document.getElementById('v_bg_brightness').textContent=Math.round(this.value*100)+'%'">
+          </div>
         </div>
         <div id="bg-custom-opts" style="display:none;margin-top:12px;">
           <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
@@ -216,12 +339,16 @@
           </div>
           <div class="img-list" id="img-list"></div>
         </div>
-        <button class="btn btn-primary" onclick="saveBg()" style="margin-top:14px">💾 Speichern</button>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveBg()">💾 Speichern</button>
+        </div>
       </div>
+    </div>
 
-      <!-- THEME -->
-      <div class="card full-width">
-        <h3>🎨 Theme</h3>
+    <!-- 🎨 THEME -->
+    <div class="section" id="sec-theme">
+      <div class="section-title">🎨 Theme</div>
+      <div class="card">
         <div class="theme-grid" id="theme-grid">
           <div class="theme-card" data-theme="classic" onclick="selectTheme('classic')">
             <div class="theme-preview">
@@ -265,12 +392,17 @@
             <div class="theme-desc">Viele Events, klein</div>
           </div>
         </div>
-        <button class="btn btn-primary" onclick="saveTheme()" style="margin-top:12px">💾 Theme speichern</button>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveTheme()">💾 Theme speichern</button>
+        </div>
       </div>
+    </div>
 
-      <!-- ✏️ SCHRIFT & FARBE -->
-      <div class="card"><h3>✏️ Schrift & Farbe</h3>
-        <div class="form-grid">
+    <!-- ✏️ SCHRIFT & FARBE -->
+    <div class="section" id="sec-design">
+      <div class="section-title">✏️ Schrift & Farbe</div>
+      <div class="card">
+        <div class="grid2">
           <div class="form-group">
             <label>Schriftart</label>
             <select class="form-input" id="s_font_family">
@@ -327,140 +459,160 @@
             </select>
           </div>
         </div>
-        <button class="btn btn-primary" onclick="saveDesign()" style="margin-top:16px">🖌️ Design speichern</button>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveDesign()">🖌️ Design speichern</button>
+        </div>
       </div>
+    </div>
 
-      <!-- 🎛️ THEME-ANPASSUNG -->
+    <!-- 🎛️ THEME-ANPASSUNG -->
+    <div class="section" id="sec-customizer">
+      <div class="section-title">🎛️ Theme-Anpassung</div>
+
       <div class="card">
-  <h3>🎛️ Theme-Anpassung</h3>
-  <div style="margin-bottom:10px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Farben</div>
-  <div class="form-grid">
-    <div class="form-group">
-      <label>Uhrzeit Farbe</label>
-      <input type="color" class="form-input" id="s_theme_time_color" value="#ffffff">
-    </div>
-    <div class="form-group">
-      <label>Datum Farbe</label>
-      <input type="color" class="form-input" id="s_theme_date_color" value="#cccccc">
-    </div>
-    <div class="form-group">
-      <label>Event-Hintergrund</label>
-      <input type="color" class="form-input" id="s_theme_event_bg" value="#1a1a2e">
-    </div>
-    <div class="form-group">
-      <label>Akzent Deckkraft: <span class="range-val" id="v_theme_accent_opacity">100%</span></label>
-      <input type="range" id="s_theme_accent_opacity" min="0.2" max="1" step="0.05"
-        oninput="document.getElementById('v_theme_accent_opacity').textContent=Math.round(this.value*100)+'%'">
-    </div>
-  </div>
-  <div style="margin:18px 0 10px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Größen & Abstände</div>
-  <div class="form-grid">
-    <div class="form-group">
-      <label>Außenabstand: <span class="range-val" id="v_theme_padding">36px</span></label>
-      <input type="range" id="s_theme_padding" min="8" max="80" step="4"
-        oninput="document.getElementById('v_theme_padding').textContent=this.value+'px'">
-    </div>
-    <div class="form-group">
-      <label>Event-Abstand: <span class="range-val" id="v_theme_event_gap">8px</span></label>
-      <input type="range" id="s_theme_event_gap" min="2" max="24" step="2"
-        oninput="document.getElementById('v_theme_event_gap').textContent=this.value+'px'">
-    </div>
-  </div>
-  <div style="margin:18px 0 10px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Layout-Anordnung</div>
-  <div class="theme-grid" id="layout-grid">
-    <div class="theme-card" data-layout="time-top" onclick="selectLayout('time-top')">
-      <div class="theme-preview" style="background:#111;">
-        <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
-          <rect width="160" height="90" fill="#0d1220"/>
-          <text x="8" y="22" font-size="16" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
-          <rect x="8" y="32" width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
-          <rect x="8" y="44" width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
-          <rect x="8" y="56" width="100" height="8" rx="2" fill="rgba(255,255,255,.08)"/>
-        </svg>
+        <h3>Farben</h3>
+        <div class="grid2">
+          <div class="form-group">
+            <label>Uhrzeit Farbe</label>
+            <input type="color" class="form-input" id="s_theme_time_color" value="#ffffff">
+          </div>
+          <div class="form-group">
+            <label>Datum Farbe</label>
+            <input type="color" class="form-input" id="s_theme_date_color" value="#cccccc">
+          </div>
+          <div class="form-group">
+            <label>Event-Hintergrund</label>
+            <input type="color" class="form-input" id="s_theme_event_bg" value="#1a1a2e">
+          </div>
+          <div class="form-group">
+            <label>Akzent Deckkraft: <span class="range-val" id="v_theme_accent_opacity">100%</span></label>
+            <input type="range" id="s_theme_accent_opacity" min="0.2" max="1" step="0.05"
+              oninput="document.getElementById('v_theme_accent_opacity').textContent=Math.round(this.value*100)+'%'">
+          </div>
+        </div>
       </div>
-      <div class="theme-name">Standard</div>
-      <div class="theme-desc">Uhr oben, Kalender unten</div>
-    </div>
-    <div class="theme-card" data-layout="time-bottom" onclick="selectLayout('time-bottom')">
-      <div class="theme-preview" style="background:#111;">
-        <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
-          <rect width="160" height="90" fill="#0d1220"/>
-          <rect x="8" y="8"  width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
-          <rect x="8" y="20" width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
-          <rect x="8" y="32" width="100" height="8" rx="2" fill="rgba(255,255,255,.08)"/>
-          <text x="8" y="76" font-size="16" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
-        </svg>
-      </div>
-      <div class="theme-name">Uhr unten</div>
-      <div class="theme-desc">Kalender oben, Uhr unten</div>
-    </div>
-    <div class="theme-card" data-layout="time-center" onclick="selectLayout('time-center')">
-      <div class="theme-preview" style="background:#111;">
-        <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
-          <rect width="160" height="90" fill="#0d1220"/>
-          <text x="50" y="52" font-size="20" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
-          <rect x="100" y="20" width="52" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
-          <rect x="100" y="32" width="52" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
-          <rect x="100" y="44" width="52" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
-          <rect x="100" y="56" width="40" height="7" rx="2" fill="rgba(255,255,255,.08)"/>
-        </svg>
-      </div>
-      <div class="theme-name">Uhr zentriert</div>
-      <div class="theme-desc">Uhr Mitte, Events rechts</div>
-    </div>
-    <div class="theme-card" data-layout="weather-left" onclick="selectLayout('weather-left')">
-      <div class="theme-preview" style="background:#111;">
-        <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
-          <rect width="160" height="90" fill="#0d1220"/>
-          <line x1="60" y1="0" x2="60" y2="90" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
-          <text x="8"  y="30" font-size="12" fill="white" opacity=".8" font-family="sans-serif">18°C</text>
-          <text x="8"  y="50" font-size="7"  fill="white" opacity=".5" font-family="sans-serif">Bewölkt</text>
-          <text x="68" y="18" font-size="13" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
-          <rect x="68" y="28" width="84" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
-          <rect x="68" y="39" width="84" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
-          <rect x="68" y="50" width="60" height="7" rx="2" fill="rgba(255,255,255,.08)"/>
-        </svg>
-      </div>
-      <div class="theme-name">Wetter links</div>
-      <div class="theme-desc">Wetter links, Uhr+Events rechts</div>
-    </div>
-    <div class="theme-card" data-layout="full-calendar" onclick="selectLayout('full-calendar')">
-      <div class="theme-preview" style="background:#111;">
-        <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
-          <rect width="160" height="90" fill="#0d1220"/>
-          <text x="8" y="12" font-size="8" fill="white" opacity=".7" font-family="sans-serif">22:47 · Fr, 13. Juni</text>
-          <rect x="8"  y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="31" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="54" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="77" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
-          <rect x="100" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="123" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="8"  y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="31" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="54" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="77" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="100" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="123" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="31"  y="21" width="17" height="3"  rx="1" fill="#e53935"/>
-          <rect x="8"   y="54" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-          <rect x="31"  y="54" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
-        </svg>
-      </div>
-      <div class="theme-name">Kalender groß</div>
-      <div class="theme-desc">Kalender dominiert, Uhr klein</div>
-    </div>
-  </div>
-  <button class="btn btn-primary" onclick="saveThemeCustom()" style="margin-top:8px">🎛️ Anpassungen speichern</button>
-</div>
 
-    </div><!-- /.grid -->
-  </div><!-- /.main -->
+      <div class="card">
+        <h3>Größen & Abstände</h3>
+        <div class="grid2">
+          <div class="form-group">
+            <label>Außenabstand: <span class="range-val" id="v_theme_padding">36px</span></label>
+            <input type="range" id="s_theme_padding" min="8" max="80" step="4"
+              oninput="document.getElementById('v_theme_padding').textContent=this.value+'px'">
+          </div>
+          <div class="form-group">
+            <label>Event-Abstand: <span class="range-val" id="v_theme_event_gap">8px</span></label>
+            <input type="range" id="s_theme_event_gap" min="2" max="24" step="2"
+              oninput="document.getElementById('v_theme_event_gap').textContent=this.value+'px'">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Layout-Anordnung</h3>
+        <div class="theme-grid" id="layout-grid">
+          <div class="theme-card" data-layout="time-top" onclick="selectLayout('time-top')">
+            <div class="theme-preview" style="background:#111;">
+              <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+                <rect width="160" height="90" fill="#0d1220"/>
+                <text x="8" y="22" font-size="16" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+                <rect x="8" y="32" width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="8" y="44" width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="8" y="56" width="100" height="8" rx="2" fill="rgba(255,255,255,.08)"/>
+              </svg>
+            </div>
+            <div class="theme-name">Standard</div>
+            <div class="theme-desc">Uhr oben, Kalender unten</div>
+          </div>
+          <div class="theme-card" data-layout="time-bottom" onclick="selectLayout('time-bottom')">
+            <div class="theme-preview" style="background:#111;">
+              <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+                <rect width="160" height="90" fill="#0d1220"/>
+                <rect x="8" y="8"  width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="8" y="20" width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="8" y="32" width="100" height="8" rx="2" fill="rgba(255,255,255,.08)"/>
+                <text x="8" y="76" font-size="16" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+              </svg>
+            </div>
+            <div class="theme-name">Uhr unten</div>
+            <div class="theme-desc">Kalender oben, Uhr unten</div>
+          </div>
+          <div class="theme-card" data-layout="time-center" onclick="selectLayout('time-center')">
+            <div class="theme-preview" style="background:#111;">
+              <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+                <rect width="160" height="90" fill="#0d1220"/>
+                <text x="50" y="52" font-size="20" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+                <rect x="100" y="20" width="52" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="100" y="32" width="52" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="100" y="44" width="52" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="100" y="56" width="40" height="7" rx="2" fill="rgba(255,255,255,.08)"/>
+              </svg>
+            </div>
+            <div class="theme-name">Uhr zentriert</div>
+            <div class="theme-desc">Uhr Mitte, Events rechts</div>
+          </div>
+          <div class="theme-card" data-layout="weather-left" onclick="selectLayout('weather-left')">
+            <div class="theme-preview" style="background:#111;">
+              <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+                <rect width="160" height="90" fill="#0d1220"/>
+                <line x1="60" y1="0" x2="60" y2="90" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+                <text x="8"  y="30" font-size="12" fill="white" opacity=".8" font-family="sans-serif">18°C</text>
+                <text x="8"  y="50" font-size="7"  fill="white" opacity=".5" font-family="sans-serif">Bewölkt</text>
+                <text x="68" y="18" font-size="13" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+                <rect x="68" y="28" width="84" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="68" y="39" width="84" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="68" y="50" width="60" height="7" rx="2" fill="rgba(255,255,255,.08)"/>
+              </svg>
+            </div>
+            <div class="theme-name">Wetter links</div>
+            <div class="theme-desc">Wetter links, Uhr+Events rechts</div>
+          </div>
+          <div class="theme-card" data-layout="full-calendar" onclick="selectLayout('full-calendar')">
+            <div class="theme-preview" style="background:#111;">
+              <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+                <rect width="160" height="90" fill="#0d1220"/>
+                <text x="8" y="12" font-size="8" fill="white" opacity=".7" font-family="sans-serif">22:47 · Fr, 13. Juni</text>
+                <rect x="8"  y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="31" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="54" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="77" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
+                <rect x="100" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="123" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="8"  y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="31" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="54" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="77" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="100" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="123" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="31"  y="21" width="17" height="3"  rx="1" fill="#e53935"/>
+                <rect x="8"   y="54" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+                <rect x="31"  y="54" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+              </svg>
+            </div>
+            <div class="theme-name">Kalender groß</div>
+            <div class="theme-desc">Kalender dominiert, Uhr klein</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="saveThemeCustom()">🎛️ Anpassungen speichern</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.content-area -->
 </div><!-- /#admin-panel -->
 
 <div id="toast"></div>
 
 <script>
 let SETTINGS = {}, calendarSelection = [], activeTheme = 'classic', activeLayout = 'time-top';
+
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
 
 function toast(msg, type='ok') {
   const t = document.getElementById('toast');
@@ -474,10 +626,11 @@ async function doLogin() {
   const r = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password: pw})});
   if (r.ok) {
     document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'block';
+    const panel = document.getElementById('admin-panel');
+    panel.classList.add('visible');
     loadSettings();
   } else {
-    toast('❌ Falsches Passwort', 'err');
+    toast('\u274C Falsches Passwort', 'err');
   }
 }
 
@@ -492,8 +645,8 @@ async function saveSetting(obj) {
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify(obj)
   });
-  if (r.ok) { toast('✅ Gespeichert'); }
-  else { toast('❌ Fehler beim Speichern', 'err'); }
+  if (r.ok) { toast('\u2705 Gespeichert'); }
+  else { toast('\u274C Fehler beim Speichern', 'err'); }
 }
 
 async function saveGoogle() {
@@ -516,7 +669,7 @@ async function loadCalendars() {
   const r = await fetch('/api/calendar');
   const data = await r.json();
   const list = document.getElementById('cal-list');
-  if (data.error) { toast('❌ ' + data.error, 'err'); return; }
+  if (data.error) { toast('\u274C ' + data.error, 'err'); return; }
   list.innerHTML = '';
   const seen = new Set();
   (data.events || []).forEach(ev => {
@@ -566,8 +719,8 @@ async function uploadImage(input) {
   const file = input.files[0]; if (!file) return;
   const fd = new FormData(); fd.append('file', file);
   const r = await fetch('/api/admin/upload-bg', {method:'POST', body: fd});
-  if (r.ok) { toast('✅ Bild hochgeladen'); loadSettings(); }
-  else { toast('❌ Upload fehlgeschlagen', 'err'); }
+  if (r.ok) { toast('\u2705 Bild hochgeladen'); loadSettings(); }
+  else { toast('\u274C Upload fehlgeschlagen', 'err'); }
   input.value = '';
 }
 
@@ -583,7 +736,7 @@ function handleDrop(e) {
 
 async function deleteImage(url) {
   await fetch('/api/admin/delete-bg', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({url})});
-  toast('🗑️ Bild gelöscht');
+  toast('\uD83D\uDDD1\uFE0F Bild gel\u00F6scht');
   loadSettings();
 }
 
@@ -592,7 +745,7 @@ function renderImages(imgs) {
   list.innerHTML = '';
   imgs.forEach(url => {
     const div = document.createElement('div'); div.className = 'img-item';
-    div.innerHTML = `<img src="${url}" loading="lazy"><button onclick="deleteImage('${url}')">✕</button>`;
+    div.innerHTML = `<img src="${url}" loading="lazy"><button onclick="deleteImage('${url}')">\u2715</button>`;
     list.appendChild(div);
   });
 }
@@ -638,7 +791,7 @@ async function saveThemeCustom() {
     theme_event_gap:      document.getElementById('s_theme_event_gap').value,
     theme_layout_preset:  activeLayout
   });
-  toast('✅ Anpassungen gespeichert – Dashboard neu laden!');
+  toast('\u2705 Anpassungen gespeichert \u2013 Dashboard neu laden!');
 }
 
 async function loadSettings() {
@@ -658,17 +811,14 @@ async function loadSettings() {
   document.getElementById('s_max_events').value = SETTINGS.max_events || 8;
   activeTheme = SETTINGS.theme || 'classic';
   selectTheme(activeTheme);
-  // Neue Farbpicker-Felder
   ['theme_time_color','theme_date_color','theme_event_bg'].forEach(k => {
     const el = document.getElementById('s_'+k);
     if (el && SETTINGS[k]) el.value = SETTINGS[k];
   });
-  // Neue Slider
   ['theme_accent_opacity','theme_padding','theme_event_gap'].forEach(k => {
     const el = document.getElementById('s_'+k);
     if (el) { el.value = SETTINGS[k]; el.dispatchEvent(new Event('input')); }
   });
-  // Layout-Preset
   activeLayout = SETTINGS.theme_layout_preset || 'time-top';
   selectLayout(activeLayout);
 }
