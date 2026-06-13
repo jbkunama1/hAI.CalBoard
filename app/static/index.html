@@ -1,1 +1,409 @@
-placeholder_index
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>hAI.CalBoard</title>
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+    body {
+      font-family: var(--font, 'Segoe UI', system-ui, sans-serif);
+      background: #000;
+      color: #fff;
+    }
+
+    /* ── BACKGROUND ── */
+    #bg {
+      position: fixed; inset: 0; z-index: 0;
+      background-size: cover; background-position: center;
+      transition: opacity 1s ease;
+    }
+    #bg-overlay {
+      position: fixed; inset: 0; z-index: 1;
+      background: rgba(0,0,0,var(--overlay, 0.45));
+    }
+
+    /* ── APP LAYOUT ── */
+    #app {
+      position: relative; z-index: 2;
+      width: 100vw; height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto 1fr;
+      grid-template-areas:
+        'time weather'
+        'calendar calendar';
+      padding: var(--app-padding, 36px);
+      gap: 24px;
+    }
+
+    /* ── TIME ── */
+    #time-block { grid-area: time; }
+    #time {
+      font-size: var(--fs-time, 7.5rem);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--time-color, #fff);
+      letter-spacing: -2px;
+    }
+    #date {
+      font-size: var(--fs-date, 1.5rem);
+      color: var(--date-color, rgba(255,255,255,.75));
+      margin-top: 8px;
+    }
+
+    /* ── WEATHER ── */
+    #weather-block {
+      grid-area: weather;
+      text-align: right;
+      align-self: start;
+    }
+    #weather-temp { font-size: 2.5rem; font-weight: 700; }
+    #weather-desc { font-size: 1rem; opacity: .75; margin-top: 4px; }
+    #weather-icon { font-size: 2rem; }
+
+    /* ── CALENDAR ── */
+    #calendar-block { grid-area: calendar; overflow: hidden; }
+    #event-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--event-gap, 8px);
+    }
+
+    /* ── CUSTOM COLORS via CSS-Variablen ── */
+    #time  { color: var(--time-color, #fff); }
+    #date  { color: var(--date-color, rgba(255,255,255,.75)); }
+
+    /* Event-Karten nutzen --event-bg */
+    body.theme-classic #event-list li,
+    body.theme-weather #event-list li,
+    body.theme-compact #event-list li {
+      background: var(--event-bg, rgba(255,255,255,.1));
+      gap: var(--event-gap, 8px);
+    }
+
+    /* Padding über Variable */
+    body.theme-classic #app,
+    body.theme-compact #app { padding: var(--app-padding, 36px); }
+
+    /* ── EVENT CARDS ── */
+    #event-list li {
+      background: rgba(255,255,255,.1);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .ev-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent, #4caf50);
+      flex-shrink: 0;
+      opacity: var(--accent-opacity, 1);
+    }
+    .ev-time { font-size: .8rem; opacity: .7; min-width: 56px; }
+    .ev-title { font-size: var(--fs-events, 1rem); flex: 1; }
+    .ev-allday { font-size: .7rem; opacity: .6; background: rgba(255,255,255,.15); padding: 2px 6px; border-radius: 4px; }
+
+    /* ── THEMES ── */
+    /* Classic: default grid layout */
+    body.theme-classic #app {
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto 1fr;
+      grid-template-areas: 'time weather' 'calendar calendar';
+    }
+
+    /* Weather: prominent weather left */
+    body.theme-weather #app {
+      grid-template-columns: 300px 1fr;
+      grid-template-rows: 1fr;
+      grid-template-areas: 'weather time' 'weather calendar';
+    }
+
+    /* Compact: smaller time, more events */
+    body.theme-compact #app {
+      grid-template-columns: 1fr;
+      grid-template-areas: 'time' 'calendar';
+    }
+    body.theme-compact #time { font-size: clamp(3rem, 8vw, 5rem); }
+    body.theme-compact #weather-block { display: none; }
+    body.theme-compact #event-list li { padding: 6px 10px; }
+
+    /* ── LAYOUT-PRESETS ── */
+    /* time-bottom: grid-areas tauschen */
+    body.layout-time-bottom.theme-classic #app {
+      grid-template-areas: 'calendar calendar' 'time weather';
+      grid-template-rows: 1fr auto;
+    }
+    /* time-center: Uhr mittig, Events rechts */
+    body.layout-time-center.theme-classic #app {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas: 'time calendar' 'time calendar';
+      grid-template-rows: 1fr;
+      align-items: center;
+    }
+    /* weather-left: Wetter links, Rest rechts */
+    body.layout-weather-left.theme-classic #app {
+      grid-template-columns: 260px 1fr;
+      grid-template-areas: 'weather time' 'weather calendar';
+    }
+    /* full-calendar: Uhr als kleine Kopfzeile */
+    body.layout-full-calendar.theme-classic #app {
+      grid-template-rows: auto 1fr;
+      grid-template-areas: 'time time' 'calendar calendar';
+    }
+    body.layout-full-calendar.theme-classic #time { font-size: 2.5rem; }
+    body.layout-full-calendar.theme-classic #weather-block { display: none; }
+
+    /* ── LOADING ── */
+    #loading {
+      position: fixed; inset: 0; z-index: 999;
+      background: #000;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; opacity: .6;
+      transition: opacity .5s;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">⏳ Wird geladen…</div>
+  <div id="bg"></div>
+  <div id="bg-overlay"></div>
+
+  <div id="app">
+    <div id="time-block">
+      <div id="time">--:--</div>
+      <div id="date">Lädt…</div>
+    </div>
+
+    <div id="weather-block">
+      <div id="weather-icon">🌡️</div>
+      <div id="weather-temp">--°C</div>
+      <div id="weather-desc">Wetter lädt…</div>
+    </div>
+
+    <div id="calendar-block">
+      <ul id="event-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    let CONFIG = {};
+    let bgImages = [], bgIndex = 0, bgTimer = null;
+
+    // ── CONFIG LADEN ──
+    async function loadConfig() {
+      try {
+        const r = await fetch('/api/settings');
+        CONFIG = await r.json();
+      } catch(e) {
+        CONFIG = {};
+      }
+
+      const root = document.documentElement;
+      const S = CONFIG;
+
+      // Basis CSS-Variablen
+      root.style.setProperty('--font',        S.font_family    || 'Segoe UI');
+      root.style.setProperty('--fs-time',     (S.font_size_time  || '7.5') + 'rem');
+      root.style.setProperty('--fs-date',     (S.font_size_date  || '1.5') + 'rem');
+      root.style.setProperty('--fs-events',   (S.font_size_events|| '1.0') + 'rem');
+      root.style.setProperty('--accent',      S.accent_color   || '#4caf50');
+      root.style.setProperty('--overlay',     S.bg_brightness  || '0.45');
+
+      // Theme-Customizer Variablen
+      root.style.setProperty('--time-color',     S.theme_time_color     || '#ffffff');
+      root.style.setProperty('--date-color',     S.theme_date_color     || 'rgba(255,255,255,0.75)');
+      root.style.setProperty('--event-bg',       S.theme_event_bg       || 'rgba(255,255,255,0.10)');
+      root.style.setProperty('--accent-opacity', S.theme_accent_opacity || '1');
+      root.style.setProperty('--app-padding',    (S.theme_padding  || 36) + 'px');
+      root.style.setProperty('--event-gap',      (S.theme_event_gap || 8) + 'px');
+
+      // Theme-Klasse setzen
+      document.body.className = '';
+      document.body.classList.add('theme-' + (S.theme || 'classic'));
+
+      // Layout-Preset Klasse setzen
+      const layoutPresets = ['time-top','time-bottom','time-center','weather-left','full-calendar'];
+      layoutPresets.forEach(p => document.body.classList.remove('layout-' + p));
+      document.body.classList.add('layout-' + (S.theme_layout_preset || 'time-top'));
+
+      // Hintergrund initialisieren
+      initBackground();
+    }
+
+    // ── HINTERGRUND ──
+    function initBackground() {
+      const mode = CONFIG.bg_mode || 'unsplash';
+      if (mode === 'custom' && CONFIG.custom_bg_images && CONFIG.custom_bg_images.length) {
+        bgImages = CONFIG.custom_bg_images;
+        showBg(bgImages[0]);
+        startBgCycle();
+      } else if (mode === 'unsplash') {
+        const q = encodeURIComponent(CONFIG.bg_unsplash_query || 'nature,landscape');
+        const url = `https://source.unsplash.com/featured/1920x1080/?${q}&sig=${Date.now()}`;
+        showBg(url);
+        startBgCycle();
+      } else {
+        document.getElementById('bg').style.background = '#0d1117';
+      }
+    }
+
+    function showBg(url) {
+      const bg = document.getElementById('bg');
+      bg.style.backgroundImage = `url(${url})`;
+    }
+
+    function startBgCycle() {
+      const interval = (parseInt(CONFIG.bg_interval) || 30) * 60 * 1000;
+      if (bgTimer) clearInterval(bgTimer);
+      bgTimer = setInterval(() => {
+        if (CONFIG.bg_mode === 'custom' && bgImages.length > 1) {
+          bgIndex = (bgIndex + 1) % bgImages.length;
+          showBg(bgImages[bgIndex]);
+        } else if (CONFIG.bg_mode === 'unsplash') {
+          const q = encodeURIComponent(CONFIG.bg_unsplash_query || 'nature,landscape');
+          showBg(`https://source.unsplash.com/featured/1920x1080/?${q}&sig=${Date.now()}`);
+        }
+      }, interval);
+    }
+
+    // ── UHR ──
+    function updateClock() {
+      const tz  = CONFIG.timezone || 'Europe/Berlin';
+      const fmt = CONFIG.time_format || '24h';
+      const dfmt= CONFIG.date_format || 'long';
+      const showSec = CONFIG.show_seconds || false;
+
+      const now = new Date();
+      const locale = 'de-DE';
+
+      // Zeit
+      const timeOpts = {
+        timeZone: tz,
+        hour: '2-digit',
+        minute: '2-digit',
+        ...(showSec ? {second: '2-digit'} : {}),
+        hour12: fmt === '12h'
+      };
+      document.getElementById('time').textContent =
+        now.toLocaleTimeString(locale, timeOpts);
+
+      // Datum
+      let dateStr;
+      if (dfmt === 'iso') {
+        const d = new Date(now.toLocaleString('en-US', {timeZone: tz}));
+        dateStr = d.toISOString().split('T')[0];
+      } else if (dfmt === 'short') {
+        dateStr = now.toLocaleDateString(locale, {timeZone: tz, weekday:'short', day:'2-digit', month:'2-digit'});
+      } else {
+        dateStr = now.toLocaleDateString(locale, {timeZone: tz, weekday:'long', day:'numeric', month:'long'});
+      }
+      document.getElementById('date').textContent = dateStr;
+    }
+
+    // ── WETTER ──
+    async function loadWeather() {
+      if (!CONFIG.show_weather) {
+        document.getElementById('weather-block').style.display = 'none';
+        return;
+      }
+      try {
+        const r = await fetch('/api/weather');
+        const d = await r.json();
+        if (d.main) {
+          document.getElementById('weather-temp').textContent = Math.round(d.main.temp) + '°C';
+          document.getElementById('weather-desc').textContent = d.weather?.[0]?.description || '';
+          document.getElementById('weather-icon').textContent = getWeatherEmoji(d.weather?.[0]?.id);
+        }
+      } catch(e) {
+        document.getElementById('weather-block').style.display = 'none';
+      }
+    }
+
+    function getWeatherEmoji(id) {
+      if (!id) return '🌡️';
+      if (id >= 200 && id < 300) return '⛈️';
+      if (id >= 300 && id < 400) return '🌦️';
+      if (id >= 500 && id < 600) return '🌧️';
+      if (id >= 600 && id < 700) return '❄️';
+      if (id >= 700 && id < 800) return '🌫️';
+      if (id === 800) return '☀️';
+      if (id > 800) return '☁️';
+      return '🌡️';
+    }
+
+    // ── KALENDER ──
+    async function loadCalendar() {
+      if (!CONFIG.show_calendar) {
+        document.getElementById('calendar-block').style.display = 'none';
+        return;
+      }
+      try {
+        const r = await fetch('/api/calendar');
+        const d = await r.json();
+        renderEvents(d.events || []);
+      } catch(e) {
+        renderEvents([]);
+      }
+    }
+
+    function renderEvents(events) {
+      const list = document.getElementById('event-list');
+      list.innerHTML = '';
+      if (!events.length) {
+        const li = document.createElement('li');
+        li.style.opacity = '.5';
+        li.textContent = 'Keine bevorstehenden Termine';
+        list.appendChild(li);
+        return;
+      }
+      const tz = CONFIG.timezone || 'Europe/Berlin';
+      events.forEach(ev => {
+        const li = document.createElement('li');
+        let timeStr = '';
+        if (ev.allDay) {
+          timeStr = '<span class="ev-allday">Ganztag</span>';
+        } else if (ev.start) {
+          const d = new Date(ev.start);
+          timeStr = '<span class="ev-time">' +
+            d.toLocaleTimeString('de-DE', {timeZone: tz, hour:'2-digit', minute:'2-digit'}) +
+            '</span>';
+        }
+        li.innerHTML = `
+          <span class="ev-dot"></span>
+          ${timeStr}
+          <span class="ev-title">${ev.title}</span>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // ── INIT ──
+    async function init() {
+      await loadConfig();
+      updateClock();
+      setInterval(updateClock, 1000);
+      loadWeather();
+      setInterval(loadWeather, 10 * 60 * 1000);
+      loadCalendar();
+      setInterval(loadCalendar, 5 * 60 * 1000);
+      // Einstellungen periodisch neu laden (für Live-Updates)
+      setInterval(async () => {
+        await loadConfig();
+      }, 60 * 1000);
+      // Loading-Screen ausblenden
+      const loading = document.getElementById('loading');
+      loading.style.opacity = '0';
+      setTimeout(() => loading.style.display = 'none', 600);
+    }
+
+    init();
+  </script>
+</body>
+</html>
