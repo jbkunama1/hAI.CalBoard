@@ -5,6 +5,18 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
 ---
 
+## [1.1.1] – 2026-06-13
+
+### Fixed
+- 🐛 `theme`-Feld fehlte in `DEFAULT_SETTINGS` und `public_settings()` → Dashboard zeigte keine Theme-Klasse, nur heller Hintergrund
+- 🌗 Bildschirmhelligkeit wird jetzt korrekt als CSS-Variable `--bg-brightness` gesetzt und per `filter: brightness()` angewendet (statt nicht-funktionalem rgba-Overlay)
+- 🖼️ Unsplash-Integration: URL auf `source.unsplash.com/featured/1920x1080/?{query}` korrigiert, Cache-Buster `?_={timestamp}` ergänzt
+- 📄 `index.html` komplett überarbeitet – alle 6 Themes, Brightness-Fix und Unsplash-Fix integriert
+- 📝 `demo.html` – Layout-Switcher (Classic / Zentriert / Minimal) ergänzt
+- ⚙️ `.env.example` – Pflichtfelder klar markiert, optionale Felder leer mit Kommentaren
+
+---
+
 ## [1.1.0] – 2026-06-13
 
 ### Added
@@ -19,6 +31,8 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 - 📋 Dokumentation an aktuellen UI- und Feature-Stand angepasst
 - 🧱 Dashboard-Frontend strukturell auf mehrere Theme-Layouts erweitert
 - 🎯 Compact- und Weather-Theme nutzen themenspezifisch reduzierte Event-Anzahl
+
+---
 
 ## [1.0.0] – 2026-06-12
 
