@@ -53,7 +53,6 @@ DEFAULT_SETTINGS = {
     'date_format': 'long',
     'overlay_style': 'dark',
     'event_style': 'card',
-    # Theme-System (v1.1)
     'theme': 'classic',
 }
 
@@ -78,7 +77,6 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def is_configured():
-    """Prueft ob Google Client ID gesetzt ist (Erststart-Erkennung)."""
     s = load_settings()
     return bool(s.get('google_client_id', '').strip())
 
@@ -100,6 +98,17 @@ def get_access_token(settings=None):
         'grant_type': 'refresh_token'
     })
     return r.json().get('access_token')
+
+def get_calendar_names(token):
+    """Gibt ein Dict {kalender_id: lesbarer_name} zurueck."""
+    try:
+        r = requests.get(
+            'https://www.googleapis.com/calendar/v3/users/me/calendarList',
+            headers={'Authorization': f'Bearer {token}'}
+        )
+        return {c['id']: c['summary'] for c in r.json().get('items', [])}
+    except:
+        return {}
 
 # ─── AUTH ─────────────────────────────────────────────────────
 @app.route('/api/admin/login', methods=['POST'])
@@ -256,9 +265,7 @@ def public_settings():
         'bg_mode', 'bg_unsplash_query', 'bg_interval', 'bg_brightness', 'accent_color',
         'show_weather', 'show_calendar', 'show_seconds', 'max_events', 'city',
         'custom_bg_images', 'layout', 'time_format', 'date_format', 'overlay_style',
-        'event_style',
-        # Theme-System
-        'theme',
+        'event_style', 'theme',
     ]
     return jsonify({k: s[k] for k in safe_keys if k in s})
 
@@ -269,7 +276,12 @@ def calendar():
     cal_ids = [c.strip() for c in cal_ids_str.split(',') if c.strip()]
     if not cal_ids:
         cal_ids = ['primary']
+
     token = get_access_token(s)
+
+    # Lesbare Kalendernamen laden (einmalig)
+    cal_names = get_calendar_names(token)
+
     events = []
     now = datetime.now(timezone.utc).isoformat()
     for cal_id in cal_ids:
@@ -277,13 +289,17 @@ def calendar():
         r = requests.get(url, headers={'Authorization': f'Bearer {token}'},
                          params={'timeMin': now, 'maxResults': s.get('max_events', 8),
                                  'singleEvents': True, 'orderBy': 'startTime'})
+        # Lesbarer Name: aus calendarList, Fallback auf 'primary' → 'Mein Kalender'
+        display_name = cal_names.get(cal_id) or (
+            'Mein Kalender' if cal_id == 'primary' else cal_id
+        )
         for item in r.json().get('items', []):
             events.append({
-                'title': item.get('summary', ''),
-                'start': item.get('start', {}).get('dateTime') or item.get('start', {}).get('date'),
-                'end':   item.get('end',   {}).get('dateTime') or item.get('end',   {}).get('date'),
-                'calendar': cal_id,
-                'color': item.get('colorId', '')
+                'title':    item.get('summary', '(kein Titel)'),
+                'start':    item.get('start', {}).get('dateTime') or item.get('start', {}).get('date'),
+                'end':      item.get('end',   {}).get('dateTime') or item.get('end',   {}).get('date'),
+                'calendar': display_name,
+                'color':    item.get('colorId', '')
             })
     events.sort(key=lambda x: x['start'] or '')
     return jsonify(events)
