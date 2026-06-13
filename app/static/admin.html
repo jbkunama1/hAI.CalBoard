@@ -366,6 +366,19 @@
           <div class="form-group"><label>Termin Größe: <span class="range-val" id="v_font_size_events">1.0rem</span></label><input type="range" id="s_font_size_events" min="0.6" max="2" step="0.1" oninput="document.getElementById('v_font_size_events').textContent=this.value+'rem'"></div>
           <div class="form-group"><label>Uhrzeitformat</label><select class="form-input" id="s_time_format"><option value="24h">24h (14:30)</option><option value="12h">12h (2:30 PM)</option></select></div>
           <div class="form-group"><label>Datumsformat</label><select class="form-input" id="s_date_format"><option value="long">Lang (Freitag, 13. Juni)</option><option value="short">Kurz (Fr, 13.06.)</option></select></div>
+          <div class="form-group"><label>Zeitzone</label>
+            <select class="form-input" id="s_timezone">
+              <option value="Europe/Berlin">Europe/Berlin (Deutschland)</option>
+              <option value="Europe/Vienna">Europe/Vienna (Österreich)</option>
+              <option value="Europe/Zurich">Europe/Zurich (Schweiz)</option>
+              <option value="Europe/London">Europe/London (UK)</option>
+              <option value="Europe/Paris">Europe/Paris (Frankreich)</option>
+              <option value="America/New_York">America/New_York (US East)</option>
+              <option value="America/Los_Angeles">America/Los_Angeles (US West)</option>
+              <option value="Asia/Tokyo">Asia/Tokyo (Japan)</option>
+              <option value="UTC">UTC</option>
+            </select>
+          </div>
         </div>
         <button class="btn btn-primary" onclick="saveDesign()" style="margin-top:16px">Design speichern</button>
       </div>
@@ -461,7 +474,7 @@ async function saveTheme() {
 async function loadSettings() {
   const r = await fetch('/api/admin/settings');
   SETTINGS = await r.json();
-  const fields = ['google_client_id','google_client_secret','google_refresh_token','openweather_api_key','city','calendar_ids','font_family','accent_color','time_format','date_format','bg_mode','bg_unsplash_query'];
+  const fields = ['google_client_id','google_client_secret','google_refresh_token','openweather_api_key','city','calendar_ids','font_family','accent_color','time_format','date_format','bg_mode','bg_unsplash_query','timezone'];
   fields.forEach(k => { const el = document.getElementById('s_'+k); if (el) el.value = SETTINGS[k] || ''; });
   ['font_size_time','font_size_date','font_size_events','bg_interval','bg_brightness'].forEach(k => {
     const el = document.getElementById('s_'+k);
@@ -492,7 +505,8 @@ async function saveDesign() {
     font_size_date:document.getElementById('s_font_size_date').value,
     font_size_events:document.getElementById('s_font_size_events').value,
     time_format:document.getElementById('s_time_format').value,
-    date_format:document.getElementById('s_date_format').value
+    date_format:document.getElementById('s_date_format').value,
+    timezone:document.getElementById('s_timezone').value
   });
 }
 async function saveWeatherSettings() { await saveSetting({city:document.getElementById('s_city').value, openweather_api_key:document.getElementById('s_openweather_api_key').value}); }

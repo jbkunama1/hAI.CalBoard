@@ -317,13 +317,23 @@ function setBackground() {
 
 // ── CLOCK ───────────────────────────────────────────────────
 function updateClock() {
+  const tz = S.timezone || 'Europe/Berlin';
   const now = new Date();
-  const tf = S.time_format === '12h'
-    ? {hour:'2-digit',minute:'2-digit',hour12:true}
-    : {hour:'2-digit',minute:'2-digit'};
-  if (S.show_seconds) tf.second = '2-digit';
-  const timeStr = now.toLocaleTimeString('de-DE', tf);
-  const dateStr = now.toLocaleDateString('de-DE', {weekday:'long',day:'numeric',month:'long'});
+  const tfOpts = {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: S.time_format === '12h',
+    timeZone: tz
+  };
+  if (S.show_seconds) tfOpts.second = '2-digit';
+  const dfOpts = {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: tz
+  };
+  const timeStr = new Intl.DateTimeFormat('de-DE', tfOpts).format(now);
+  const dateStr = new Intl.DateTimeFormat('de-DE', dfOpts).format(now);
   // standard blocks
   document.getElementById('time').textContent = timeStr;
   document.getElementById('date').textContent = dateStr;

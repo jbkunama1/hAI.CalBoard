@@ -2,6 +2,7 @@ from flask import Flask, jsonify, send_from_directory, request, session, redirec
 from flask_cors import CORS
 import requests, os, json, secrets
 from datetime import datetime, timezone
+import pytz
 from functools import wraps
 from werkzeug.utils import secure_filename
 import hashlib
@@ -54,6 +55,7 @@ DEFAULT_SETTINGS = {
     'overlay_style': 'dark',
     'event_style': 'card',
     'theme': 'classic',
+    'timezone': 'Europe/Berlin',
 }
 
 def load_settings():
@@ -265,7 +267,7 @@ def public_settings():
         'bg_mode', 'bg_unsplash_query', 'bg_interval', 'bg_brightness', 'accent_color',
         'show_weather', 'show_calendar', 'show_seconds', 'max_events', 'city',
         'custom_bg_images', 'layout', 'time_format', 'date_format', 'overlay_style',
-        'event_style', 'theme',
+        'event_style', 'theme', 'timezone',
     ]
     return jsonify({k: s[k] for k in safe_keys if k in s})
 
@@ -283,7 +285,8 @@ def calendar():
     cal_names = get_calendar_names(token)
 
     events = []
-    now = datetime.now(timezone.utc).isoformat()
+    tz = pytz.timezone(s.get('timezone', 'Europe/Berlin'))
+    now = datetime.now(tz).isoformat()
     for cal_id in cal_ids:
         url = f'https://www.googleapis.com/calendar/v3/calendars/{requests.utils.quote(cal_id)}/events'
         r = requests.get(url, headers={'Authorization': f'Bearer {token}'},
