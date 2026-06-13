@@ -1,1 +1,677 @@
-placeholder_admin
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>hAI.CalBoard – Admin</title>
+  <style>
+    :root {
+      --bg: #0d1117; --surface: #161b22; --surface2: #21262d;
+      --border: #30363d; --text: #e6edf3; --muted: #8b949e;
+      --accent: #58a6ff; --accent2: #1f6feb; --danger: #f85149;
+      --success: #3fb950; --warning: #d29922;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
+    #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 40px; width: 360px; text-align: center; }
+    .login-box h1 { font-size: 1.5rem; margin-bottom: 8px; }
+    .login-box p { color: var(--muted); margin-bottom: 24px; }
+    #admin-panel { display: none; }
+    header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    header h1 { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .main { max-width: 960px; margin: 0 auto; padding: 24px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .card h3 { font-size: .95rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: .8rem; color: var(--muted); }
+    .form-input { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 7px 10px; font-size: .85rem; width: 100%; transition: border-color .2s; }
+    .form-input:focus { outline: none; border-color: var(--accent); }
+    input[type=color].form-input { padding: 3px 6px; height: 36px; cursor: pointer; }
+    input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    .range-val { color: var(--accent); font-weight: 600; }
+    select.form-input { cursor: pointer; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 6px; border: none; font-size: .85rem; font-weight: 500; cursor: pointer; transition: all .2s; }
+    .btn-primary { background: var(--accent2); color: #fff; }
+    .btn-primary:hover { background: #388bfd; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-sm { padding: 4px 10px; font-size: .8rem; }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: .3s; }
+    .slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .3s; }
+    input:checked + .slider { background: var(--accent2); }
+    input:checked + .slider:before { transform: translateX(20px); }
+    .section-label { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 20px 0 12px; font-weight: 600; }
+    .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 4px; }
+    .theme-card { border: 2px solid var(--border); border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color .2s, transform .15s; }
+    .theme-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .theme-card.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(88,166,255,.25); }
+    .theme-preview { width: 100%; aspect-ratio: 16/9; overflow: hidden; }
+    .theme-preview svg { display: block; width: 100%; height: 100%; }
+    .theme-name { padding: 6px 8px 2px; font-size: .8rem; font-weight: 600; }
+    .theme-desc { padding: 0 8px 8px; font-size: .72rem; color: var(--muted); }
+    .img-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px,1fr)); gap: 8px; margin-top: 8px; }
+    .img-item { position: relative; aspect-ratio: 16/9; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+    .img-item img { width: 100%; height: 100%; object-fit: cover; }
+    .img-item button { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,.7); border: none; color: #fff; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: .75rem; }
+    .upload-zone { border: 2px dashed var(--border); border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: border-color .2s; color: var(--muted); }
+    .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); color: var(--text); }
+    .cal-list { list-style: none; }
+    .cal-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .cal-item:last-child { border: none; }
+    .cal-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .cal-name { flex: 1; font-size: .85rem; }
+    #toast { position: fixed; bottom: 24px; right: 24px; padding: 10px 18px; border-radius: 8px; font-size: .85rem; font-weight: 500; opacity: 0; transform: translateY(8px); transition: all .3s; pointer-events: none; z-index: 9999; }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.ok { background: var(--success); color: #fff; }
+    #toast.err { background: var(--danger); color: #fff; }
+    .full-width { grid-column: 1/-1; }
+    .inline-group { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; }
+    .inline-group label { font-size: .85rem; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .code-hint { font-family: monospace; background: var(--bg); padding: 8px 12px; border-radius: 6px; font-size: .8rem; color: var(--muted); word-break: break-all; border: 1px solid var(--border); margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <h1>🗓️ hAI.CalBoard</h1>
+    <p>Admin-Bereich – bitte anmelden</p>
+    <div class="form-group" style="text-align:left;margin-bottom:12px;">
+      <label>Passwort</label>
+      <input type="password" class="form-input" id="pw-input" placeholder="Passwort eingeben"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doLogin()">
+      🔐 Anmelden
+    </button>
+  </div>
+</div>
+
+<div id="admin-panel">
+  <header>
+    <h1>🗓️ hAI.CalBoard <span style="color:var(--muted);font-weight:400">Admin</span></h1>
+    <div class="header-actions">
+      <a href="/" target="_blank" class="btn btn-secondary btn-sm">🖥️ Dashboard</a>
+      <button class="btn btn-secondary btn-sm" onclick="doLogout()">Abmelden</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="grid">
+
+      <!-- GOOGLE KALENDER -->
+      <div class="card full-width">
+        <h3>📅 Google Kalender</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Google Client ID</label>
+            <input type="text" class="form-input" id="s_google_client_id" placeholder="xxx.apps.googleusercontent.com">
+          </div>
+          <div class="form-group">
+            <label>Google Client Secret</label>
+            <input type="password" class="form-input" id="s_google_client_secret" placeholder="GOCSPX-...">
+          </div>
+          <div class="form-group">
+            <label>Refresh Token</label>
+            <input type="text" class="form-input" id="s_google_refresh_token" placeholder="automatisch via OAuth">
+          </div>
+          <div class="form-group">
+            <label>Kalender-IDs (kommagetrennt, leer = alle)</label>
+            <input type="text" class="form-input" id="s_calendar_ids" placeholder="primary, id@group.calendar...">
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="saveGoogle()">💾 Speichern</button>
+          <button class="btn btn-primary" onclick="connectGoogle()">🔗 Google verbinden (OAuth)</button>
+          <button class="btn btn-secondary" onclick="loadCalendars()">📋 Kalender laden</button>
+        </div>
+        <ul class="cal-list" id="cal-list" style="margin-top:12px;"></ul>
+      </div>
+
+      <!-- WETTER -->
+      <div class="card">
+        <h3>🌤️ Wetter</h3>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>OpenWeatherMap API Key</label>
+          <input type="text" class="form-input" id="s_openweather_api_key" placeholder="API Key">
+        </div>
+        <div class="form-group">
+          <label>Stadt</label>
+          <input type="text" class="form-input" id="s_city" placeholder="z.B. Pfinztal">
+        </div>
+        <button class="btn btn-primary" onclick="saveWeather()" style="margin-top:14px">💾 Speichern</button>
+      </div>
+
+      <!-- ANZEIGE -->
+      <div class="card">
+        <h3>⚙️ Anzeige</h3>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="inline-group">
+            <label>Wetter anzeigen</label>
+            <label class="toggle"><input type="checkbox" id="s_show_weather"><span class="slider"></span></label>
+          </div>
+          <div class="inline-group">
+            <label>Kalender anzeigen</label>
+            <label class="toggle"><input type="checkbox" id="s_show_calendar"><span class="slider"></span></label>
+          </div>
+          <div class="inline-group">
+            <label>Sekunden anzeigen</label>
+            <label class="toggle"><input type="checkbox" id="s_show_seconds"><span class="slider"></span></label>
+          </div>
+          <div class="form-group">
+            <label>Max. Events: <span class="range-val" id="v_max_events">8</span></label>
+            <input type="range" id="s_max_events" min="1" max="20" step="1"
+              oninput="document.getElementById('v_max_events').textContent=this.value">
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveDisplay()" style="margin-top:14px">💾 Speichern</button>
+      </div>
+
+      <!-- HINTERGRUND -->
+      <div class="card">
+        <h3>🖼️ Hintergrund</h3>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>Modus</label>
+          <select class="form-input" id="s_bg_mode" onchange="toggleBgMode()">
+            <option value="unsplash">Unsplash (automatisch)</option>
+            <option value="custom">Eigene Bilder</option>
+            <option value="color">Farbe / Gradient</option>
+          </select>
+        </div>
+        <div id="bg-unsplash-opts">
+          <div class="form-group" style="margin-bottom:10px">
+            <label>Unsplash Suche</label>
+            <input type="text" class="form-input" id="s_bg_unsplash_query" placeholder="nature,landscape">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>Wechsel (Minuten): <span class="range-val" id="v_bg_interval">30</span></label>
+          <input type="range" id="s_bg_interval" min="1" max="120" step="1"
+            oninput="document.getElementById('v_bg_interval').textContent=this.value">
+        </div>
+        <div class="form-group">
+          <label>Helligkeit: <span class="range-val" id="v_bg_brightness">45%</span></label>
+          <input type="range" id="s_bg_brightness" min="0" max="1" step="0.05"
+            oninput="document.getElementById('v_bg_brightness').textContent=Math.round(this.value*100)+'%'">
+        </div>
+        <div id="bg-custom-opts" style="display:none;margin-top:12px;">
+          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
+            ondragover="event.preventDefault();this.classList.add('drag')"
+            ondragleave="this.classList.remove('drag')"
+            ondrop="handleDrop(event)">
+            📁 Klicken oder Bild hierher ziehen
+            <input type="file" id="file-input" accept="image/*" style="display:none" onchange="uploadImage(this)">
+          </div>
+          <div class="img-list" id="img-list"></div>
+        </div>
+        <button class="btn btn-primary" onclick="saveBg()" style="margin-top:14px">💾 Speichern</button>
+      </div>
+
+      <!-- THEME -->
+      <div class="card full-width">
+        <h3>🎨 Theme</h3>
+        <div class="theme-grid" id="theme-grid">
+          <div class="theme-card" data-theme="classic" onclick="selectTheme('classic')">
+            <div class="theme-preview">
+              <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                <rect width="160" height="90" fill="#0d1220"/>
+                <text x="8" y="28" font-size="22" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+                <text x="8" y="44" font-size="9" fill="white" opacity=".5" font-family="sans-serif">Freitag, 13. Juni</text>
+                <rect x="8" y="52" width="144" height="10" rx="3" fill="rgba(255,255,255,.1)"/>
+                <rect x="8" y="66" width="120" height="10" rx="3" fill="rgba(255,255,255,.1)"/>
+              </svg>
+            </div>
+            <div class="theme-name">Classic</div>
+            <div class="theme-desc">Dunkel, minimalistisch</div>
+          </div>
+          <div class="theme-card" data-theme="weather" onclick="selectTheme('weather')">
+            <div class="theme-preview">
+              <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                <defs><linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a3a5c"/><stop offset="100%" style="stop-color:#0d1b2a"/></linearGradient></defs>
+                <rect width="160" height="90" fill="url(#wg)"/>
+                <text x="8" y="20" font-size="8" fill="white" opacity=".6" font-family="sans-serif">☁️ 18°C Bewölkt</text>
+                <text x="8" y="42" font-size="22" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+                <rect x="8" y="52" width="144" height="8" rx="2" fill="rgba(255,255,255,.12)"/>
+                <rect x="8" y="64" width="110" height="8" rx="2" fill="rgba(255,255,255,.12)"/>
+              </svg>
+            </div>
+            <div class="theme-name">Weather</div>
+            <div class="theme-desc">Wetter prominent</div>
+          </div>
+          <div class="theme-card" data-theme="compact" onclick="selectTheme('compact')">
+            <div class="theme-preview">
+              <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                <rect width="160" height="90" fill="#111"/>
+                <text x="8" y="16" font-size="12" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+                <rect x="8" y="22" width="144" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="8" y="33" width="144" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="8" y="44" width="144" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+                <rect x="8" y="55" width="100" height="7" rx="2" fill="rgba(255,255,255,.08)"/>
+              </svg>
+            </div>
+            <div class="theme-name">Compact</div>
+            <div class="theme-desc">Viele Events, klein</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveTheme()" style="margin-top:12px">💾 Theme speichern</button>
+      </div>
+
+      <!-- ✏️ SCHRIFT & FARBE -->
+      <div class="card"><h3>✏️ Schrift & Farbe</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Schriftart</label>
+            <select class="form-input" id="s_font_family">
+              <option>Segoe UI</option><option>Inter</option><option>Roboto</option>
+              <option>Montserrat</option><option>Lato</option><option>Open Sans</option>
+              <option>Source Code Pro</option><option>Courier New</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Akzentfarbe</label>
+            <input type="color" class="form-input" id="s_accent_color" value="#4caf50">
+          </div>
+          <div class="form-group">
+            <label>Uhrzeit Größe: <span class="range-val" id="v_font_size_time">7.5rem</span></label>
+            <input type="range" id="s_font_size_time" min="3" max="14" step="0.5"
+              oninput="document.getElementById('v_font_size_time').textContent=this.value+'rem'">
+          </div>
+          <div class="form-group">
+            <label>Datum Größe: <span class="range-val" id="v_font_size_date">1.5rem</span></label>
+            <input type="range" id="s_font_size_date" min="0.8" max="4" step="0.1"
+              oninput="document.getElementById('v_font_size_date').textContent=this.value+'rem'">
+          </div>
+          <div class="form-group">
+            <label>Event Größe: <span class="range-val" id="v_font_size_events">1.0rem</span></label>
+            <input type="range" id="s_font_size_events" min="0.6" max="2" step="0.1"
+              oninput="document.getElementById('v_font_size_events').textContent=this.value+'rem'">
+          </div>
+          <div class="form-group">
+            <label>Zeitformat</label>
+            <select class="form-input" id="s_time_format">
+              <option value="24h">24h (22:47)</option>
+              <option value="12h">12h (10:47 PM)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Datumsformat</label>
+            <select class="form-input" id="s_date_format">
+              <option value="long">Lang (Freitag, 13. Juni)</option>
+              <option value="short">Kurz (Fr, 13.06.)</option>
+              <option value="iso">ISO (2025-06-13)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Zeitzone</label>
+            <select class="form-input" id="s_timezone">
+              <option value="Europe/Berlin">Europe/Berlin (DE)</option>
+              <option value="Europe/Vienna">Europe/Vienna (AT)</option>
+              <option value="Europe/Zurich">Europe/Zurich (CH)</option>
+              <option value="Europe/London">Europe/London (UK)</option>
+              <option value="America/New_York">America/New_York (US East)</option>
+              <option value="America/Los_Angeles">America/Los_Angeles (US West)</option>
+              <option value="Asia/Tokyo">Asia/Tokyo (Japan)</option>
+              <option value="UTC">UTC</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveDesign()" style="margin-top:16px">🖌️ Design speichern</button>
+      </div>
+
+      <!-- 🎛️ THEME-ANPASSUNG -->
+      <div class="card">
+  <h3>🎛️ Theme-Anpassung</h3>
+  <div style="margin-bottom:10px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Farben</div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Uhrzeit Farbe</label>
+      <input type="color" class="form-input" id="s_theme_time_color" value="#ffffff">
+    </div>
+    <div class="form-group">
+      <label>Datum Farbe</label>
+      <input type="color" class="form-input" id="s_theme_date_color" value="#cccccc">
+    </div>
+    <div class="form-group">
+      <label>Event-Hintergrund</label>
+      <input type="color" class="form-input" id="s_theme_event_bg" value="#1a1a2e">
+    </div>
+    <div class="form-group">
+      <label>Akzent Deckkraft: <span class="range-val" id="v_theme_accent_opacity">100%</span></label>
+      <input type="range" id="s_theme_accent_opacity" min="0.2" max="1" step="0.05"
+        oninput="document.getElementById('v_theme_accent_opacity').textContent=Math.round(this.value*100)+'%'">
+    </div>
+  </div>
+  <div style="margin:18px 0 10px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Größen & Abstände</div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>Außenabstand: <span class="range-val" id="v_theme_padding">36px</span></label>
+      <input type="range" id="s_theme_padding" min="8" max="80" step="4"
+        oninput="document.getElementById('v_theme_padding').textContent=this.value+'px'">
+    </div>
+    <div class="form-group">
+      <label>Event-Abstand: <span class="range-val" id="v_theme_event_gap">8px</span></label>
+      <input type="range" id="s_theme_event_gap" min="2" max="24" step="2"
+        oninput="document.getElementById('v_theme_event_gap').textContent=this.value+'px'">
+    </div>
+  </div>
+  <div style="margin:18px 0 10px;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Layout-Anordnung</div>
+  <div class="theme-grid" id="layout-grid">
+    <div class="theme-card" data-layout="time-top" onclick="selectLayout('time-top')">
+      <div class="theme-preview" style="background:#111;">
+        <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <rect width="160" height="90" fill="#0d1220"/>
+          <text x="8" y="22" font-size="16" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+          <rect x="8" y="32" width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
+          <rect x="8" y="44" width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
+          <rect x="8" y="56" width="100" height="8" rx="2" fill="rgba(255,255,255,.08)"/>
+        </svg>
+      </div>
+      <div class="theme-name">Standard</div>
+      <div class="theme-desc">Uhr oben, Kalender unten</div>
+    </div>
+    <div class="theme-card" data-layout="time-bottom" onclick="selectLayout('time-bottom')">
+      <div class="theme-preview" style="background:#111;">
+        <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <rect width="160" height="90" fill="#0d1220"/>
+          <rect x="8" y="8"  width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
+          <rect x="8" y="20" width="144" height="8" rx="2" fill="rgba(255,255,255,.1)"/>
+          <rect x="8" y="32" width="100" height="8" rx="2" fill="rgba(255,255,255,.08)"/>
+          <text x="8" y="76" font-size="16" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+        </svg>
+      </div>
+      <div class="theme-name">Uhr unten</div>
+      <div class="theme-desc">Kalender oben, Uhr unten</div>
+    </div>
+    <div class="theme-card" data-layout="time-center" onclick="selectLayout('time-center')">
+      <div class="theme-preview" style="background:#111;">
+        <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <rect width="160" height="90" fill="#0d1220"/>
+          <text x="50" y="52" font-size="20" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+          <rect x="100" y="20" width="52" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+          <rect x="100" y="32" width="52" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+          <rect x="100" y="44" width="52" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+          <rect x="100" y="56" width="40" height="7" rx="2" fill="rgba(255,255,255,.08)"/>
+        </svg>
+      </div>
+      <div class="theme-name">Uhr zentriert</div>
+      <div class="theme-desc">Uhr Mitte, Events rechts</div>
+    </div>
+    <div class="theme-card" data-layout="weather-left" onclick="selectLayout('weather-left')">
+      <div class="theme-preview" style="background:#111;">
+        <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <rect width="160" height="90" fill="#0d1220"/>
+          <line x1="60" y1="0" x2="60" y2="90" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+          <text x="8"  y="30" font-size="12" fill="white" opacity=".8" font-family="sans-serif">18°C</text>
+          <text x="8"  y="50" font-size="7"  fill="white" opacity=".5" font-family="sans-serif">Bewölkt</text>
+          <text x="68" y="18" font-size="13" fill="white" opacity=".9" font-family="sans-serif">22:47</text>
+          <rect x="68" y="28" width="84" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+          <rect x="68" y="39" width="84" height="7" rx="2" fill="rgba(255,255,255,.1)"/>
+          <rect x="68" y="50" width="60" height="7" rx="2" fill="rgba(255,255,255,.08)"/>
+        </svg>
+      </div>
+      <div class="theme-name">Wetter links</div>
+      <div class="theme-desc">Wetter links, Uhr+Events rechts</div>
+    </div>
+    <div class="theme-card" data-layout="full-calendar" onclick="selectLayout('full-calendar')">
+      <div class="theme-preview" style="background:#111;">
+        <svg viewBox="0 0 160 90" xmlns="http://www.w3.org/2000/svg" width="100%">
+          <rect width="160" height="90" fill="#0d1220"/>
+          <text x="8" y="12" font-size="8" fill="white" opacity=".7" font-family="sans-serif">22:47 · Fr, 13. Juni</text>
+          <rect x="8"  y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="31" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="54" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="77" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.14)" stroke="rgba(255,255,255,.35)" stroke-width="1"/>
+          <rect x="100" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="123" y="18" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="8"  y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="31" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="54" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="77" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="100" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="123" y="36" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="31"  y="21" width="17" height="3"  rx="1" fill="#e53935"/>
+          <rect x="8"   y="54" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+          <rect x="31"  y="54" width="20" height="14" rx="2" fill="rgba(255,255,255,.06)"/>
+        </svg>
+      </div>
+      <div class="theme-name">Kalender groß</div>
+      <div class="theme-desc">Kalender dominiert, Uhr klein</div>
+    </div>
+  </div>
+  <button class="btn btn-primary" onclick="saveThemeCustom()" style="margin-top:8px">🎛️ Anpassungen speichern</button>
+</div>
+
+    </div><!-- /.grid -->
+  </div><!-- /.main -->
+</div><!-- /#admin-panel -->
+
+<div id="toast"></div>
+
+<script>
+let SETTINGS = {}, calendarSelection = [], activeTheme = 'classic', activeLayout = 'time-top';
+
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'show ' + type;
+  clearTimeout(t._tid);
+  t._tid = setTimeout(() => t.className = '', 3000);
+}
+
+async function doLogin() {
+  const pw = document.getElementById('pw-input').value;
+  const r = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password: pw})});
+  if (r.ok) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    loadSettings();
+  } else {
+    toast('❌ Falsches Passwort', 'err');
+  }
+}
+
+async function doLogout() {
+  await fetch('/api/logout', {method:'POST'});
+  location.reload();
+}
+
+async function saveSetting(obj) {
+  const r = await fetch('/api/admin/settings', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(obj)
+  });
+  if (r.ok) { toast('✅ Gespeichert'); }
+  else { toast('❌ Fehler beim Speichern', 'err'); }
+}
+
+async function saveGoogle() {
+  await saveSetting({
+    google_client_id:     document.getElementById('s_google_client_id').value,
+    google_client_secret: document.getElementById('s_google_client_secret').value,
+    google_refresh_token: document.getElementById('s_google_refresh_token').value,
+    calendar_ids:         document.getElementById('s_calendar_ids').value
+  });
+}
+
+function connectGoogle() {
+  const w = window.open('/api/auth/google', '_blank', 'width=500,height=600');
+  const iv = setInterval(() => {
+    if (w.closed) { clearInterval(iv); loadSettings(); }
+  }, 1000);
+}
+
+async function loadCalendars() {
+  const r = await fetch('/api/calendar');
+  const data = await r.json();
+  const list = document.getElementById('cal-list');
+  if (data.error) { toast('❌ ' + data.error, 'err'); return; }
+  list.innerHTML = '';
+  const seen = new Set();
+  (data.events || []).forEach(ev => {
+    if (!seen.has(ev.calendarId)) {
+      seen.add(ev.calendarId);
+      const li = document.createElement('li');
+      li.className = 'cal-item';
+      li.innerHTML = `<span class="cal-dot" style="background:#${Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0')}"></span><span class="cal-name">${ev.calendarId}</span>`;
+      list.appendChild(li);
+    }
+  });
+  if (!seen.size) list.innerHTML = '<li style="color:var(--muted);padding:8px 0">Keine Kalender gefunden</li>';
+}
+
+async function saveWeather() {
+  await saveSetting({
+    openweather_api_key: document.getElementById('s_openweather_api_key').value,
+    city: document.getElementById('s_city').value
+  });
+}
+
+async function saveDisplay() {
+  await saveSetting({
+    show_weather:  document.getElementById('s_show_weather').checked,
+    show_calendar: document.getElementById('s_show_calendar').checked,
+    show_seconds:  document.getElementById('s_show_seconds').checked,
+    max_events:    document.getElementById('s_max_events').value
+  });
+}
+
+function toggleBgMode() {
+  const mode = document.getElementById('s_bg_mode').value;
+  document.getElementById('bg-unsplash-opts').style.display = mode === 'unsplash' ? '' : 'none';
+  document.getElementById('bg-custom-opts').style.display   = mode === 'custom'   ? '' : 'none';
+}
+
+async function saveBg() {
+  await saveSetting({
+    bg_mode:           document.getElementById('s_bg_mode').value,
+    bg_unsplash_query: document.getElementById('s_bg_unsplash_query').value,
+    bg_interval:       document.getElementById('s_bg_interval').value,
+    bg_brightness:     document.getElementById('s_bg_brightness').value
+  });
+}
+
+async function uploadImage(input) {
+  const file = input.files[0]; if (!file) return;
+  const fd = new FormData(); fd.append('file', file);
+  const r = await fetch('/api/admin/upload-bg', {method:'POST', body: fd});
+  if (r.ok) { toast('✅ Bild hochgeladen'); loadSettings(); }
+  else { toast('❌ Upload fehlgeschlagen', 'err'); }
+  input.value = '';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0]; if (!file) return;
+  const input = document.getElementById('file-input');
+  const dt = new DataTransfer(); dt.items.add(file);
+  input.files = dt.files;
+  uploadImage(input);
+}
+
+async function deleteImage(url) {
+  await fetch('/api/admin/delete-bg', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({url})});
+  toast('🗑️ Bild gelöscht');
+  loadSettings();
+}
+
+function renderImages(imgs) {
+  const list = document.getElementById('img-list');
+  list.innerHTML = '';
+  imgs.forEach(url => {
+    const div = document.createElement('div'); div.className = 'img-item';
+    div.innerHTML = `<img src="${url}" loading="lazy"><button onclick="deleteImage('${url}')">✕</button>`;
+    list.appendChild(div);
+  });
+}
+
+function selectTheme(theme) {
+  activeTheme = theme;
+  document.querySelectorAll('#theme-grid .theme-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.theme === theme);
+  });
+}
+
+function selectLayout(layout) {
+  activeLayout = layout;
+  document.querySelectorAll('#layout-grid .theme-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.layout === layout);
+  });
+}
+
+async function saveTheme() {
+  await saveSetting({theme: activeTheme});
+}
+
+async function saveDesign() {
+  await saveSetting({
+    font_family:           document.getElementById('s_font_family').value,
+    accent_color:          document.getElementById('s_accent_color').value,
+    font_size_time:        document.getElementById('s_font_size_time').value,
+    font_size_date:        document.getElementById('s_font_size_date').value,
+    font_size_events:      document.getElementById('s_font_size_events').value,
+    time_format:           document.getElementById('s_time_format').value,
+    date_format:           document.getElementById('s_date_format').value,
+    timezone:              document.getElementById('s_timezone').value
+  });
+}
+
+async function saveThemeCustom() {
+  await saveSetting({
+    theme_time_color:     document.getElementById('s_theme_time_color').value,
+    theme_date_color:     document.getElementById('s_theme_date_color').value,
+    theme_event_bg:       document.getElementById('s_theme_event_bg').value,
+    theme_accent_opacity: document.getElementById('s_theme_accent_opacity').value,
+    theme_padding:        document.getElementById('s_theme_padding').value,
+    theme_event_gap:      document.getElementById('s_theme_event_gap').value,
+    theme_layout_preset:  activeLayout
+  });
+  toast('✅ Anpassungen gespeichert – Dashboard neu laden!');
+}
+
+async function loadSettings() {
+  const r = await fetch('/api/admin/settings');
+  SETTINGS = await r.json();
+  const fields = ['google_client_id','google_client_secret','google_refresh_token','openweather_api_key','city','calendar_ids','font_family','accent_color','time_format','date_format','bg_mode','bg_unsplash_query','timezone'];
+  fields.forEach(k => { const el = document.getElementById('s_'+k); if (el) el.value = SETTINGS[k] || ''; });
+  ['font_size_time','font_size_date','font_size_events','bg_interval','bg_brightness'].forEach(k => {
+    const el = document.getElementById('s_'+k);
+    if (el) { el.value = SETTINGS[k]; el.dispatchEvent(new Event('input')); }
+  });
+  ['show_weather','show_calendar','show_seconds'].forEach(k => {
+    const el = document.getElementById('s_'+k); if (el) el.checked = SETTINGS[k];
+  });
+  renderImages(SETTINGS.custom_bg_images || []);
+  toggleBgMode();
+  document.getElementById('s_max_events').value = SETTINGS.max_events || 8;
+  activeTheme = SETTINGS.theme || 'classic';
+  selectTheme(activeTheme);
+  // Neue Farbpicker-Felder
+  ['theme_time_color','theme_date_color','theme_event_bg'].forEach(k => {
+    const el = document.getElementById('s_'+k);
+    if (el && SETTINGS[k]) el.value = SETTINGS[k];
+  });
+  // Neue Slider
+  ['theme_accent_opacity','theme_padding','theme_event_gap'].forEach(k => {
+    const el = document.getElementById('s_'+k);
+    if (el) { el.value = SETTINGS[k]; el.dispatchEvent(new Event('input')); }
+  });
+  // Layout-Preset
+  activeLayout = SETTINGS.theme_layout_preset || 'time-top';
+  selectLayout(activeLayout);
+}
+</script>
+</body>
+</html>
