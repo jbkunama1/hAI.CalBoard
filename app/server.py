@@ -23,8 +23,9 @@ DEFAULT_SETTINGS = {
     'font_size_time': '7.5',
     'font_size_date': '1.5',
     'font_size_events': '1.0',
-    'bg_mode': 'unsplash',
+    'bg_mode': 'picsum',
     'bg_unsplash_query': 'nature,landscape',
+    'bg_unsplash_key': '',
     'bg_interval': 30,
     'bg_brightness': 0.45,
     'accent_color': '#4caf50',
@@ -121,6 +122,7 @@ def public_settings():
         'theme_time_color', 'theme_date_color', 'theme_event_bg',
         'theme_accent_opacity', 'theme_padding', 'theme_event_gap',
         'theme_layout_preset',
+        # bg_unsplash_key wird NICHT in safe_keys exponiert (geheim)
     ]
     return jsonify({k: s[k] for k in safe_keys if k in s})
 
@@ -175,6 +177,26 @@ def delete_bg():
         except Exception:
             pass
     return jsonify({'ok': True})
+
+@app.route('/api/background')
+def background_proxy():
+    """Bing Daily Image Proxy — liefert das aktuelle Bing-Hintergrundbild."""
+    try:
+        r = requests.get(
+            'https://www.bing.com/HPImageArchive.aspx',
+            params={'format': 'js', 'idx': 0, 'n': 1, 'mkt': 'de-DE'},
+            timeout=5
+        )
+        data = r.json()
+        url_path = data['images'][0]['url']
+        full_url = 'https://www.bing.com' + url_path
+        img = requests.get(full_url, timeout=10)
+        return img.content, 200, {
+            'Content-Type': 'image/jpeg',
+            'Cache-Control': 'public, max-age=3600'
+        }
+    except Exception as e:
+        return jsonify({'error': str(e)}), 502
 
 @app.route('/api/weather')
 def weather():

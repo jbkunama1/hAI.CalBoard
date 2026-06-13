@@ -237,9 +237,44 @@ async function loadConfig() {
 }
 
 // ── BACKGROUND ──────────────────────────────────────────
+// bg_mode: 'picsum' | 'unsplash_api' | 'bing' | 'custom' | 'unsplash' (legacy → picsum)
+function buildBgUrl(mode, S) {
+  const seed = Date.now();
+  if (mode === 'picsum') {
+    // Lorem Picsum — kein API-Key, sofort, 1920x1080
+    return `https://picsum.photos/seed/${seed}/1920/1080`;
+  }
+  if (mode === 'unsplash_api') {
+    // Offizieller Unsplash-API-Endpunkt (braucht Client-ID)
+    const key = S.bg_unsplash_key || '';
+    const q   = encodeURIComponent(S.bg_unsplash_query || 'nature,landscape');
+    if (!key) return buildBgUrl('picsum', S);  // Fallback wenn kein Key
+    return `https://api.unsplash.com/photos/random?query=${q}&orientation=landscape&client_id=${key}&t=${seed}`;
+  }
+  if (mode === 'bing') {
+    // Wird vom Backend als Proxy geliefert
+    return `/api/background?t=${seed}`;
+  }
+  // Fallback / Legacy 'unsplash' → Picsum
+  return `https://picsum.photos/seed/${seed}/1920/1080`;
+}
+
+async function loadUnsplashApiUrl(S) {
+  // Unsplash API gibt JSON zurück — wir lesen die Bild-URL daraus
+  const key = S.bg_unsplash_key || '';
+  const q   = encodeURIComponent(S.bg_unsplash_query || 'nature,landscape');
+  try {
+    const r = await fetch(
+      `https://api.unsplash.com/photos/random?query=${q}&orientation=landscape&client_id=${key}`
+    );
+    const d = await r.json();
+    return d.urls?.full || d.urls?.regular || null;
+  } catch(e) { return null; }
+}
+
 function setupBackground() {
-  const S = CONFIG;
-  const mode = S.bg_mode || 'unsplash';
+  const S    = CONFIG;
+  const mode = S.bg_mode || 'picsum';
   const interval = (parseInt(S.bg_interval) || 30) * 60 * 1000;
 
   if (mode === 'custom' && S.custom_bg_images && S.custom_bg_images.length) {
@@ -251,21 +286,33 @@ function setupBackground() {
         setBg(bgImages[bgIndex]);
       }, interval);
     }
-  } else if (mode === 'unsplash') {
-    const q = encodeURIComponent(S.bg_unsplash_query || 'nature,landscape');
-    const url = `https://source.unsplash.com/1920x1080/?${q}&t=${Date.now()}`;
-    setBg(url);
-    bgTimer = setInterval(() => {
-      const u = `https://source.unsplash.com/1920x1080/?${q}&t=${Date.now()}`;
-      setBg(u);
-    }, interval);
+    return;
   }
+
+  if (mode === 'unsplash_api') {
+    // Unsplash API: JSON-Response → URL extrahieren
+    loadUnsplashApiUrl(S).then(url => setBg(url || buildBgUrl('picsum', S)));
+    bgTimer = setInterval(() => {
+      loadUnsplashApiUrl(S).then(url => setBg(url || buildBgUrl('picsum', S)));
+    }, interval);
+    return;
+  }
+
+  // picsum, bing, legacy unsplash
+  setBg(buildBgUrl(mode, S));
+  bgTimer = setInterval(() => setBg(buildBgUrl(mode, S)), interval);
 }
 
 function setBg(url) {
-  const bg = document.getElementById('bg');
+  if (!url) return;
+  const bg  = document.getElementById('bg');
   const tmp = new Image();
   tmp.onload = () => { bg.style.backgroundImage = `url('${url}')`; };
+  tmp.onerror = () => {
+    // letzter Fallback: Picsum mit anderem Seed
+    const fallback = `https://picsum.photos/seed/${Date.now()}/1920/1080`;
+    if (url !== fallback) { tmp2 = new Image(); tmp2.onload = () => { bg.style.backgroundImage = `url('${fallback}')`; }; tmp2.src = fallback; }
+  };
   tmp.src = url;
 }
 
@@ -346,11 +393,11 @@ async function loadEvents() {
       let timeStr = '';
       if (!ev.allDay && ev.start) {
         const tz = CONFIG.timezone || 'Europe/Berlin';
-        const d = new Date(ev.start);
+        const dt = new Date(ev.start);
         timeStr = new Intl.DateTimeFormat('de-DE', {
           timeZone: tz, hour:'2-digit', minute:'2-digit',
           day:'numeric', month:'short'
-        }).format(d);
+        }).format(dt);
       } else if (ev.allDay && ev.start) {
         const parts = ev.start.split('-');
         timeStr = `${parts[2]}.${parts[1]}. – ganztägig`;
