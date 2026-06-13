@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 import hashlib
 import sys
 
-# ─── STARTUP CHECKS ──────────────────────────────────────────────────
+# ─── STARTUP CHECKS ────────────────────────────────────────────
 def _require_env(var):
     val = os.environ.get(var, '')
     if not val:
@@ -52,7 +52,9 @@ DEFAULT_SETTINGS = {
     'time_format': '24h',
     'date_format': 'long',
     'overlay_style': 'dark',
-    'event_style': 'card'
+    'event_style': 'card',
+    # Theme-System (v1.1)
+    'theme': 'classic',
 }
 
 def load_settings():
@@ -99,7 +101,7 @@ def get_access_token(settings=None):
     })
     return r.json().get('access_token')
 
-# ─── AUTH ────────────────────────────────────────────────────────────
+# ─── AUTH ─────────────────────────────────────────────────────
 @app.route('/api/admin/login', methods=['POST'])
 def admin_login():
     data = request.json
@@ -118,7 +120,7 @@ def admin_logout():
 def admin_check():
     return jsonify({'authenticated': bool(session.get('admin'))})
 
-# ─── SETTINGS ────────────────────────────────────────────────────────
+# ─── SETTINGS ────────────────────────────────────────────
 @app.route('/api/admin/settings', methods=['GET'])
 @admin_required
 def get_settings():
@@ -138,7 +140,7 @@ def update_settings():
     save_settings(data)
     return jsonify({'ok': True})
 
-# ─── GOOGLE OAUTH (mit State-Parameter gegen CSRF) ───────────────────
+# ─── GOOGLE OAUTH ──────────────────────────────────────────
 @app.route('/api/admin/oauth/url')
 @admin_required
 def oauth_url():
@@ -190,7 +192,7 @@ def oauth_test():
     except Exception as e:
         return jsonify({'ok': False, 'message': str(e)})
 
-# ─── KALENDER LISTE ──────────────────────────────────────────────────
+# ─── KALENDER LISTE ────────────────────────────────────────
 @app.route('/api/admin/calendars')
 @admin_required
 def list_calendars():
@@ -206,7 +208,7 @@ def list_calendars():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# ─── BILD-UPLOAD ─────────────────────────────────────────────────────
+# ─── BILD-UPLOAD ───────────────────────────────────────────
 @app.route('/api/admin/upload', methods=['POST'])
 @admin_required
 def upload_image():
@@ -241,10 +243,9 @@ def delete_image(filename):
 def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
-# ─── PUBLIC API ──────────────────────────────────────────────────────
+# ─── PUBLIC API ─────────────────────────────────────────────
 @app.route('/api/setup-status')
 def setup_status():
-    """Frontend fragt ab ob Erststart (kein Google Client ID)."""
     return jsonify({'configured': is_configured()})
 
 @app.route('/api/settings')
@@ -254,7 +255,10 @@ def public_settings():
         'font_family', 'font_size_time', 'font_size_date', 'font_size_events',
         'bg_mode', 'bg_unsplash_query', 'bg_interval', 'bg_brightness', 'accent_color',
         'show_weather', 'show_calendar', 'show_seconds', 'max_events', 'city',
-        'custom_bg_images', 'layout', 'time_format', 'date_format', 'overlay_style', 'event_style'
+        'custom_bg_images', 'layout', 'time_format', 'date_format', 'overlay_style',
+        'event_style',
+        # Theme-System
+        'theme',
     ]
     return jsonify({k: s[k] for k in safe_keys if k in s})
 
@@ -277,7 +281,7 @@ def calendar():
             events.append({
                 'title': item.get('summary', ''),
                 'start': item.get('start', {}).get('dateTime') or item.get('start', {}).get('date'),
-                'end': item.get('end', {}).get('dateTime') or item.get('end', {}).get('date'),
+                'end':   item.get('end',   {}).get('dateTime') or item.get('end',   {}).get('date'),
                 'calendar': cal_id,
                 'color': item.get('colorId', '')
             })
@@ -287,7 +291,7 @@ def calendar():
 @app.route('/api/weather')
 def weather():
     s = load_settings()
-    key = s.get('openweather_api_key', '')
+    key  = s.get('openweather_api_key', '')
     city = s.get('city', 'Pfinztal')
     r = requests.get(
         f'https://api.openweathermap.org/data/2.5/weather'
@@ -295,17 +299,16 @@ def weather():
     )
     d = r.json()
     return jsonify({
-        'temp': round(d['main']['temp']),
-        'feels_like': round(d['main']['feels_like']),
+        'temp':        round(d['main']['temp']),
+        'feels_like':  round(d['main']['feels_like']),
         'description': d['weather'][0]['description'],
-        'icon': d['weather'][0]['icon'],
-        'city': d['name']
+        'icon':        d['weather'][0]['icon'],
+        'city':        d['name']
     })
 
-# ─── STATIC ──────────────────────────────────────────────────────────
+# ─── STATIC ──────────────────────────────────────────────────
 @app.route('/')
 def index():
-    # Erststart-Erkennung: noch kein Google Client ID → direkt zu /admin
     if not is_configured():
         return redirect('/admin?setup=1')
     return send_from_directory('static', 'index.html')
