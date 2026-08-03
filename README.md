@@ -49,8 +49,12 @@ SECRET_KEY=irgendein_langer_zufaelliger_string_mindestens_32_zeichen
 ```bash
 git clone https://github.com/jbkunama1/hAI.CalBoard.git
 cd hAI.CalBoard
-docker compose up -d --build
+docker compose up -d
 ```
+
+> Das fertige Image wird automatisch aus der **GitHub Container Registry** gezogen
+> (`ghcr.io/jbkunama1/hai.calboard:latest`) – kein Build vor Ort nötig.
+> Lokal bauen geht trotzdem: `docker compose up -d --build`.
 
 ### Schritt 3 – Browser öffnen
 
@@ -72,7 +76,8 @@ Wenn noch nichts eingerichtet ist, leitet der Server automatisch auf **`/admin`*
 | 🖼️ **Hintergrundwechsel** | Unsplash oder eigene Bilder, Intervall einstellbar |
 | 🎨 **6 Themes** | Classic, Month, Focus, Weather, Compact, Split |
 | 📅 **Monatsansicht** | DAKboard-artiger Monatskalender mit farbigen Event-Chips |
-| 🐳 **Docker-Ready** | Läuft als Container auf Port `4455` |
+| 🐳 **Docker-Ready** | Fertiges GHCR-Image, läuft als Container auf Port `4455` |
+| 🌐 **GitHub Pages** | Promotion-Index + Live-Demo automatisch deployt |
 | 🔒 **Sicher** | `.env` nie im Repo, Refresh Token lokal, kein Fallback-Passwort |
 | 🏠 **Self-Hosted** | Kein Cloud-Abo, kein Tracking |
 | 🛠️ **Admin-Panel** | Passwortgeschütztes Web-UI unter `/admin` |
@@ -155,13 +160,48 @@ Erreichbar unter **`http://deine-ip:4455/admin`**.
 
 ## 🚀 Weitere Installationswege
 
-### 📦 Portainer
+### 📦 Portainer (empfohlen)
 
-1. Stack anlegen
-2. Repo: `https://github.com/jbkunama1/hAI.CalBoard`
-3. Compose-Datei: `docker-compose.yml`
+Das Container-Image wird bei jedem Push auf `main` automatisch von einem
+[GitHub-Actions-Workflow](.github/workflows/docker-publish.yml) gebaut und nach
+**`ghcr.io/jbkunama1/hai.calboard:latest`** gepusht. In Portainer brauchst du
+deshalb nur das fertige Image – kein Git-Repo und kein Build.
+
+1. **Portainer** → **Stacks** → **Add stack**
+2. Name vergeben (z. B. `hAI-CalBoard`)
+3. **Web editor** wählen und folgendes einfügen:
+
+```yaml
+services:
+  calboard:
+    image: ghcr.io/jbkunama1/hai.calboard:latest
+    container_name: hAI-CalBoard
+    ports:
+      - "4455:8080"
+    environment:
+      ADMIN_PASSWORD: "dein_sicheres_passwort"
+      SECRET_KEY: "ein_langer_zufaelliger_string_min_32"
+      # OPTIONAL:
+      # GOOGLE_CLIENT_ID: ""
+      # GOOGLE_CLIENT_SECRET: ""
+      # GOOGLE_REFRESH_TOKEN: ""
+      # CALENDAR_IDS: "primary"
+      # OPENWEATHER_API_KEY: ""
+      # CITY: "Pfinztal"
+    volumes:
+      - calboard_data:/data
+    restart: unless-stopped
+
+volumes:
+  calboard_data:
+```
+
 4. Mindestens `ADMIN_PASSWORD` und `SECRET_KEY` setzen
-5. Deploy
+5. **Deploy the stack**
+
+> Hinweis: Wenn du das Image selbst bauen willst (z. B. mit Änderungen aus einem
+> Fork), setze stattdessen `build: .` im Stack und deploye per Git-Template
+> `https://github.com/jbkunama1/hAI.CalBoard`.
 
 ### 🔧 Bare Metal
 
@@ -182,12 +222,16 @@ cd app && gunicorn --bind 0.0.0.0:4455 server:app
 hAI.CalBoard/
 ├── docker-compose.yml
 ├── Dockerfile
+├── index.html            # GitHub-Pages-Promotion-Seite
+├── demo.html              # Self-contained Live-Demo
 ├── .env.example
 ├── README.md
 ├── README_EN.md
 ├── CHANGELOG.md
-├── demo.html
 ├── requirements.txt
+├── .github/workflows/
+│   ├── docker-publish.yml # baut & pusht GHCR-Image
+│   └── gh-pages.yml       # deployt GitHub Pages
 ├── scripts/
 │   ├── kiosk.sh
 │   └── autostart.desktop
@@ -222,6 +266,27 @@ hAI.CalBoard/
 | Port 4455 belegt | Port in `docker-compose.yml` anpassen |
 | OAuth schlägt fehl | Redirect URI exakt prüfen |
 | Einstellungen gehen verloren | Docker Volume `calboard_data` prüfen |
+
+---
+
+## 🤖 CI/CD – Automatischer Image-Build
+
+Bei jedem Push auf `main` baut ein
+[GitHub-Actions-Workflow](.github/workflows/docker-publish.yml) das Container-Image
+und pusht es automatisch auf **`ghcr.io/jbkunama1/hai.calboard`**.
+
+- **Tags:** `latest` (Branch `main`), `vX.Y.Z` (SemVer-Tags), `sha-<commit>` je Commit
+- **Cache:** Buildx GHA-Cache, `pull_request` baut nur (kein Push)
+- Portainer kann das Image direkt per `ghcr.io/jbkunama1/hai.calboard:latest` laden (siehe oben)
+
+### 🌐 GitHub Pages
+
+Wie Promotion-Seite ([`index.html`](index.html) samt [`demo.html`](demo.html))
+wird automatisch gebaut und nach GitHub Pages deployt. Aktiviere in den
+Repo-Einstellungen einmalig:
+
+1. **Settings → Pages → Source:** „GitHub Actions"
+2. Der Workflow [`.github/workflows/gh-pages.yml`](.github/workflows/gh-pages.yml) deployt bei jedem relevanten Push automatisch.
 
 ---
 

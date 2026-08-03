@@ -1,7 +1,10 @@
 version: '3.8'
 services:
   calboard:
-    build: .
+    # Fertiges Image aus GitHub Container Registry (automatisch vom CI-Workflow gebaut)
+    image: ghcr.io/jbkunama1/hai.calboard:latest
+    # Alternativ lokal bauen: docker compose up -d --build
+    # build: .
     container_name: hAI-CalBoard
     ports:
       - "4455:8080"
