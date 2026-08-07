@@ -1,5 +1,9 @@
 # 🖥️ hAI.CalBoard
 
+<a href="https://www.buymeacoffee.com/highfish">
+<img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174">
+</a>
+
 <div align="center">
 
 ![hAI.CalBoard Logo](https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/efe4dd3d-88a7-4f27-ace9-72f4ef2db416.png)
@@ -247,3 +251,4 @@ MIT License – © 2026 Daniel Lienhard
 <div align="center">
 Made with ❤️ in Pfinztal · Powered by Flask, Docker & Google Calendar API
 </div>
+
