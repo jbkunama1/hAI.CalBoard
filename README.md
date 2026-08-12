@@ -51,12 +51,13 @@ SECRET_KEY=irgendein_langer_zufaelliger_string_mindestens_32_zeichen
 ```bash
 git clone https://github.com/jbkunama1/hAI.CalBoard.git
 cd hAI.CalBoard
-docker compose up -d --build
+docker compose up -d
 ```
 
 > Das fertige Image wird automatisch aus der **GitHub Container Registry** gezogen
 > (`ghcr.io/jbkunama1/hai.calboard:latest`) – kein Build vor Ort nötig.
-> Lokal bauen geht trotzdem: `docker compose up -d --build`.
+> Für einen lokalen Build: `build: .` in `docker-compose.yml` einkommentieren,
+> dann `docker compose up -d --build` nutzen.
 
 ### Schritt 3 – Browser öffnen
 
