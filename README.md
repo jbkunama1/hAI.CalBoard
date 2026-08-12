@@ -204,6 +204,17 @@ networks:
     external: true
 ```
 
+**⚠️ Netzwerk erstellen, bevor du den Stack startest!**
+
+Da `highfishNetwork` als externes Netzwerk konfiguriert ist, muss es
+bereits existieren, bevor `docker compose up -d` ausgeführt wird.
+
+Erstelle das Netzwerk mit diesem Befehl:
+
+```bash
+docker network create highfishNetwork
+```
+
 4. Mindestens `ADMIN_PASSWORD` und `SECRET_KEY` setzen
 5. **Deploy the stack**
 
