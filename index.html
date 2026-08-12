@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="hAI.CalBoard – Self-hosted Smart Home Dashboard à la DAKboard. Google Kalender, Wetter, Uhrzeit, Themes. Läuft als Docker-Container in Portainer.">
+  <title>hAI.CalBoard – Self-hosted Smart Home Dashboard</title>
+  <style>
+    :root{
+      --accent:#4caf50; --bg:#0b0f14; --card:rgba(255,255,255,.04); --border:rgba(255,255,255,.09);
+      --text:#e9edf2; --muted:#8b95a3;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:
+      radial-gradient(1200px 600px at 80% -10%,rgba(76,175,80,.14),transparent 60%),
+      radial-gradient(1000px 500px at -10% 110%,rgba(33,150,243,.10),transparent 60%),
+      var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+    a{color:var(--accent);text-decoration:none}
+    .wrap{max-width:1040px;margin:0 auto;padding:56px 24px 80px}
+    header{display:flex;align-items:center;gap:16px;margin-bottom:56px}
+    header .logo{font-size:1.4rem;font-weight:700;letter-spacing:.5px}
+    header nav{margin-left:auto;display:flex;gap:22px;font-size:.92rem}
+    header nav a{color:var(--muted)}
+    header nav a:hover{color:var(--text)}
+    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;margin-bottom:64px}
+    .hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:18px}
+    .hero h1 span{color:var(--accent)}
+    .hero p.lead{color:var(--muted);font-size:1.1rem;margin-bottom:28px;max-width:46ch}
+    .cta{display:flex;gap:14px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:10px;font-weight:600;font-size:.95rem;transition:transform .15s,box-shadow .2s}
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{background:var(--accent);color:#0b0f14}
+    .btn-primary:hover{box-shadow:0 8px 24px rgba(76,175,80,.35)}
+    .btn-ghost{background:var(--card);border:1px solid var(--border);color:var(--text)}
+    .demo-frame{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--border);
+      box-shadow:0 24px 60px rgba(0,0,0,.5);background:#000;aspect-ratio:16/9}
+    .demo-frame iframe{width:100%;height:100%;border:0}
+    .demo-tag{position:absolute;top:10px;left:50%;transform:translateX(-50%);
+      background:rgba(255,193,7,.92);color:#111;font-size:.7rem;font-weight:700;
+      letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;pointer-events:none}
+    .pill{display:inline-block;background:rgba(76,175,80,.15);color:var(--accent);
+      border:1px solid rgba(76,175,80,.35);font-size:.78rem;font-weight:600;
+      padding:5px 14px;border-radius:20px;margin-bottom:22px;letter-spacing:1px;text-transform:uppercase}
+    section{margin-bottom:72px}
+    h2{font-size:clamp(1.5rem,3vw,2rem);margin-bottom:12px;letter-spacing:-.5px}
+    .sub{color:var(--muted);margin-bottom:32px;max-width:62ch}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px}
+    .card .icon{font-size:1.6rem;margin-bottom:10px}
+    .card h3{font-size:1rem;margin-bottom:6px}
+    .card p{color:var(--muted);font-size:.88rem}
+    .install{display:grid;grid-template-columns:1.2fr .8fr;gap:32px;align-items:start}
+    pre{background:#0d1117;border:1px solid var(--border);border-radius:12px;padding:18px;
+      font-family:'Cascadia Code',Consolas,monospace;font-size:.82rem;color:#c9d1d9;overflow-x:auto;margin-top:8px}
+    pre code{white-space:pre}
+    .step{display:flex;gap:14px;margin-bottom:20px}
+    .step b{flex:0 0 22px;height:22px;width:22px;line-height:22px;text-align:center;border-radius:50%;
+      background:var(--accent);color:#0b0f14;font-size:.8rem}
+    .step p{color:var(--muted);font-size:.92rem}
+    footer{border-top:1px solid var(--border);margin-top:24px;padding-top:24px;
+      color:var(--muted);font-size:.85rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    @media(max-width:820px){.hero{grid-template-columns:1fr}.install{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">🖥️ hAI.CalBoard</div>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#portainer">Portainer</a>
+      <a href="#demo">Demo</a>
+      <a href="https://github.com/jbkunama1/hAI.CalBoard" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <span class="pill">Self-hosted · DAKboard-Alternative</span>
+      <h1>Ein Smart-Home-<span>Dashboard</span> für dein Display.</h1>
+      <p class="lead">Google Kalender, Live-Wetter, Uhrzeit und dynamische Hintergründe – frei kombinierbar mit Themes &amp; Layout-Presets. Läuft als Docker-Container, vollständig lokal, ohne Cloud-Abo.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/jbkunama1/hAI.CalBoard" target="_blank" rel="noopener">⭐ Auf GitHub</a>
+        <a class="btn btn-ghost" href="demo.html">🎭 Live-Demo ansehen</a>
+      </div>
+    </div>
+    <div class="demo-frame">
+      <span class="demo-tag">📸 Demo</span>
+      <iframe src="demo.html" title="hAI.CalBoard Live-Demo" loading="lazy"></iframe>
+    </div>
+  </div>
+
+  <section id="features" class="grid">
+    <div class="card"><div class="icon">🗓️</div><h3>Google Kalender</h3><p>Mehrere Kalender via OAuth2, alle 5 Minuten aktualisiert, farbige Event-Chips.</p></div>
+    <div class="card"><div class="icon">🌤️</div><h3>Live-Wetter</h3><p>OpenWeatherMap, Echtzeit, auf Deutsch – Temperatur, Beschreibung &amp; Icon.</p></div>
+    <div class="card"><div class="icon">🕐</div><h3>Uhrzeit &amp; Datum</h3><p>Sekundengenau, Zeitzone konfigurierbar, 12h/24h und drei Datumsformate.</p></div>
+    <div class="card"><div class="icon">🖼️</div><h3>Hintergrundwechsel</h3><p>Picsum, Unsplash API, Bing Daily oder eigene Bilder – Intervall frei wählbar.</p></div>
+    <div class="card"><div class="icon">🎨</div><h3>Themes &amp; Presets</h3><p>Classic, Month, Focus, Weather, Compact, Split + Layout-Presets via CSS-Variablen.</p></div>
+    <div class="card"><div class="icon">📅</div><h3>Monatsansicht</h3><p>DAKboard-artiger Kalender mit farbigen Event-Chips für den Überblick.</p></div>
+    <div class="card"><div class="icon">🐳</div><h3>Docker &amp; GHCR</h3><p>Fertiges Image auf ghcr.io, Workflow veröffentlicht bei Pushes auf <code>main</code> und SemVer-Tags.</p></div>
+    <div class="card"><div class="icon">🛠️</div><h3>Admin-Panel</h3><p>Passwortgeschütztes Web-UI unter <code>/admin</code> – alles ohne Code konfigurierbar.</p></div>
+  </section>
+
+  <section id="demo" class="demo-frame" style="aspect-ratio:16/9">
+    <span class="demo-tag">📸 Live-Demo – Beispieldaten</span>
+    <iframe src="demo.html" title="hAI.CalBoard Live-Demo" loading="lazy"></iframe>
+  </section>
+
+  <section id="portainer">
+    <h2>In Portainer deployen</h2>
+    <p class="sub">Das automatisch gebaute Container-Image liegt unter <code>ghcr.io/jbkunama1/hai.calboard</code>. Du brauchst nur das fertige Image zu pullen – kein Build im Portainer nötig.</p>
+
+    <div class="card" style="padding:0">
+      <pre><code># Stack -> Add stack -> Custom
+# Name: hAI-CalBoard
+
+services:
+  calboard:
+    image: ghcr.io/jbkunama1/hai.calboard:latest
+    container_name: hAI-CalBoard
+    ports:
+      - "4455:8080"
+    environment:
+      ADMIN_PASSWORD: "dein_sicheres_passwort"
+      SECRET_KEY: "ein_langer_zufaelliger_string_min_32"
+      # OPTIONAL:
+      # GOOGLE_CLIENT_ID: ""
+      # GOOGLE_CLIENT_SECRET: ""
+      # GOOGLE_REFRESH_TOKEN: ""
+      # CALENDAR_IDS: "primary"
+      # OPENWEATHER_API_KEY: ""
+      # CITY: "Pfinztal"
+    volumes:
+      - calboard_data:/data
+    networks:
+      - highfishNetwork
+    restart: unless-stopped
+
+volumes:
+  calboard_data:
+
+networks:
+  highfishNetwork:
+    external: true</code></pre>
+    </div>
+
+    <div style="margin-top:28px">
+      <h2>So läuft's ab</h2>
+      <div class="step"><b>1</b><p>Workflow baut das Image bei jedem Push auf <code>main</code> und pusht es nach <code>ghcr.io</code>.</p></div>
+      <div class="step"><b>2</b><p>In Portainer <em>Stack → Add stack</em> wählen, obiges YAML einfügen und dein Admin-Passwort setzen.</p></div>
+      <div class="step"><b>3</b><p>Deploy → Dashboard ist unter <code>http://deine-ip:4455</code> erreichbar, Admin unter <code>/admin</code>.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Daniel Lienhard · MIT License</span>
+    <span>Made with ❤️ in Pfinztal</span>
+  </footer>
+</div>
+</body>
+</html>

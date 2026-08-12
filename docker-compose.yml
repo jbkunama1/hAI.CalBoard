@@ -1,7 +1,10 @@
 version: '3.8'
 services:
   calboard:
-    build: .
+    # Fertiges Image aus GitHub Container Registry (automatisch vom CI-Workflow gebaut)
+    image: ghcr.io/jbkunama1/hai.calboard:latest
+    # Alternativ lokal bauen: docker compose up -d --build
+    # build: .
     container_name: hAI-CalBoard
     ports:
       - "4455:8080"
@@ -16,6 +19,8 @@ services:
       - CITY=${CITY:-Pfinztal}
     volumes:
       - calboard_data:/data
+    networks:
+      - highfishNetwork
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/"]
@@ -23,6 +28,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+
+networks:
+  highfishNetwork:
+    external: true
 
 volumes:
   calboard_data:
