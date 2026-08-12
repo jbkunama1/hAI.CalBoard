@@ -1,5 +1,7 @@
 # 🖥️ hAI.CalBoard
 
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://www.buymeacoffee.com/highfish)
+
 <div align="center">
 
 ![hAI.CalBoard Logo](https://user-gen-media-assets.s3.amazonaws.com/gpt4o_images/efe4dd3d-88a7-4f27-ace9-72f4ef2db416.png)
@@ -49,7 +51,7 @@ SECRET_KEY=irgendein_langer_zufaelliger_string_mindestens_32_zeichen
 ```bash
 git clone https://github.com/jbkunama1/hAI.CalBoard.git
 cd hAI.CalBoard
-docker compose up -d
+docker compose up -d --build
 ```
 
 > Das fertige Image wird automatisch aus der **GitHub Container Registry** gezogen
@@ -86,7 +88,7 @@ Wenn noch nichts eingerichtet ist, leitet der Server automatisch auf **`/admin`*
 
 ## 🛠️ Admin-Panel
 
-Erreichbar unter **`http://deine-ip:4455/admin`**.
+Erreichbar unter **`http://deine-ip:4455/admin`** .
 
 | Bereich | Funktion |
 |---|---|
@@ -190,10 +192,16 @@ services:
       # CITY: "Pfinztal"
     volumes:
       - calboard_data:/data
+    networks:
+      - highfishNetwork
     restart: unless-stopped
 
 volumes:
   calboard_data:
+
+networks:
+  highfishNetwork:
+    external: true
 ```
 
 4. Mindestens `ADMIN_PASSWORD` und `SECRET_KEY` setzen
@@ -273,7 +281,7 @@ hAI.CalBoard/
 
 Bei jedem Push auf `main` baut ein
 [GitHub-Actions-Workflow](.github/workflows/docker-publish.yml) das Container-Image
-und pusht es automatisch auf **`ghcr.io/jbkunama1/hai.calboard`**.
+und pusht es automatisch auf **`ghcr.io/jbkunama1/hai.calboard`** .
 
 - **Tags:** `latest` (Branch `main`), `vX.Y.Z` (SemVer-Tags), `sha-<commit>` je Commit
 - **Cache:** Buildx GHA-Cache, `pull_request` baut nur (kein Push)
