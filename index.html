@@ -133,10 +133,16 @@ services:
       # CITY: "Pfinztal"
     volumes:
       - calboard_data:/data
+    networks:
+      - highfishNetwork
     restart: unless-stopped
 
 volumes:
-  calboard_data:</code></pre>
+  calboard_data:
+
+networks:
+  highfishNetwork:
+    external: true</code></pre>
     </div>
 
     <div style="margin-top:28px">
