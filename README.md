@@ -49,6 +49,9 @@ SECRET_KEY=irgendein_langer_zufaelliger_string_mindestens_32_zeichen
 ### Schritt 2 – Container starten
 
 ```bash
+# Optional: create the external network if it does not exist
+# docker network create highfishNetwork
+
 git clone https://github.com/jbkunama1/hAI.CalBoard.git
 cd hAI.CalBoard
 docker compose up -d
