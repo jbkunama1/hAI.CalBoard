@@ -47,13 +47,13 @@ DEFAULT_SETTINGS = {
     'event_style': 'card',
     'theme': 'classic',
     'timezone': 'Europe/Berlin',
-    'theme_time_color':      '#ffffff',
-    'theme_date_color':      'rgba(255,255,255,0.75)',
-    'theme_event_bg':        'rgba(255,255,255,0.10)',
-    'theme_accent_opacity':  '1.0',
-    'theme_padding':         '36',
-    'theme_event_gap':       '8',
-    'theme_layout_preset':   'time-top',
+    'theme_time_color': '#ffffff',
+    'theme_date_color': 'rgba(255,255,255,0.75)',
+    'theme_event_bg': 'rgba(255,255,255,0.10)',
+    'theme_accent_opacity': '1.0',
+    'theme_padding': '36',
+    'theme_event_gap': '8',
+    'theme_layout_preset': 'time-top',
 }
 
 _settings_cache = None
@@ -122,7 +122,6 @@ def public_settings():
         'theme_time_color', 'theme_date_color', 'theme_event_bg',
         'theme_accent_opacity', 'theme_padding', 'theme_event_gap',
         'theme_layout_preset',
-        # bg_unsplash_key wird NICHT in safe_keys exponiert (geheim)
     ]
     return jsonify({k: s[k] for k in safe_keys if k in s})
 
@@ -180,7 +179,6 @@ def delete_bg():
 
 @app.route('/api/background')
 def background_proxy():
-    """Bing Daily Image Proxy — liefert das aktuelle Bing-Hintergrundbild."""
     try:
         r = requests.get(
             'https://www.bing.com/HPImageArchive.aspx',
@@ -191,10 +189,7 @@ def background_proxy():
         url_path = data['images'][0]['url']
         full_url = 'https://www.bing.com' + url_path
         img = requests.get(full_url, timeout=10)
-        return img.content, 200, {
-            'Content-Type': 'image/jpeg',
-            'Cache-Control': 'public, max-age=3600'
-        }
+        return img.content, 200, {'Content-Type': 'image/jpeg', 'Cache-Control': 'public, max-age=3600'}
     except Exception as e:
         return jsonify({'error': str(e)}), 502
 
@@ -215,6 +210,42 @@ def weather():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/weather/forecast')
+def weather_forecast():
+    s = load_settings()
+    api_key = s.get('openweather_api_key', '')
+    city = s.get('city', 'Berlin')
+    if not api_key:
+        return jsonify({'error': 'No API key'}), 400
+    try:
+        r = requests.get(
+            'https://api.openweathermap.org/data/2.5/forecast',
+            params={'q': city, 'appid': api_key, 'units': 'metric', 'lang': 'de'},
+            timeout=5
+        )
+        data = r.json()
+        daily = {}
+        for entry in data.get('list', []):
+            dt = datetime.fromtimestamp(entry['dt'])
+            date = dt.date().isoformat()
+            temp = entry['main']['temp']
+            if date not in daily:
+                daily[date] = {'temp_min': temp, 'temp_max': temp, 'icon': entry['weather'][0]['icon'], 'description': entry['weather'][0]['description']}
+            else:
+                daily[date]['temp_min'] = min(daily[date]['temp_min'], temp)
+                daily[date]['temp_max'] = max(daily[date]['temp_max'], temp)
+        sorted_dates = sorted(daily.keys())[:5]
+        forecast = [{
+            'date': d,
+            'temp_min': round(daily[d]['temp_min']),
+            'temp_max': round(daily[d]['temp_max']),
+            'icon': daily[d]['icon'],
+            'description': daily[d]['description']
+        } for d in sorted_dates]
+        return jsonify({'forecast': forecast})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/calendar')
 def calendar():
     s = load_settings()
@@ -224,13 +255,7 @@ def calendar():
     if not all([client_id, client_secret, refresh_token]):
         return jsonify({'events': [], 'error': 'Google not configured'})
     try:
-        creds = Credentials(
-            token=None,
-            refresh_token=refresh_token,
-            client_id=client_id,
-            client_secret=client_secret,
-            token_uri='https://oauth2.googleapis.com/token'
-        )
+        creds = Credentials(token=None, refresh_token=refresh_token, client_id=client_id, client_secret=client_secret, token_uri='https://oauth2.googleapis.com/token')
         creds.refresh(GoogleRequest())
         service = build('calendar', 'v3', credentials=creds)
         tz = s.get('timezone', 'Europe/Berlin')
@@ -246,14 +271,7 @@ def calendar():
         all_events = []
         for cal_id in ids:
             try:
-                result = service.events().list(
-                    calendarId=cal_id,
-                    timeMin=time_min,
-                    timeMax=time_max,
-                    maxResults=50,
-                    singleEvents=True,
-                    orderBy='startTime'
-                ).execute()
+                result = service.events().list(calendarId=cal_id, timeMin=time_min, timeMax=time_max, maxResults=50, singleEvents=True, orderBy='startTime').execute()
                 for ev in result.get('items', []):
                     start = ev.get('start', {})
                     all_events.append({
