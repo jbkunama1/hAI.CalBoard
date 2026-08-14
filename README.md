@@ -82,6 +82,8 @@ Wenn noch nichts eingerichtet ist, leitet der Server automatisch auf **`/admin`*
 | 🖼️ **Hintergrundwechsel** | Unsplash oder eigene Bilder, Intervall einstellbar |
 | 🎨 **6 Themes** | Classic, Month, Focus, Weather, Compact, Split |
 | 📅 **Monatsansicht** | DAKboard-artiger Monatskalender mit farbigen Event-Chips |
+| 🌅 **5-Tage- Wettervorhersage** | Min/Max Temperatur, Icons, Beschreibungen pro Tag |
+| 🗂️ **Kalender-Gruppierung** | Events pro Tag sortiert & gruppiert mit Tagesüberschrift |
 | 🐳 **Docker-Ready** | Fertiges GHCR-Image, läuft als Container auf Port `4455` |
 | 🌐 **GitHub Pages** | Promotion-Index + Live-Demo automatisch deployt |
 | 🔒 **Sicher** | `.env` nie im Repo, Refresh Token lokal, kein Fallback-Passwort |
@@ -92,7 +94,7 @@ Wenn noch nichts eingerichtet ist, leitet der Server automatisch auf **`/admin`*
 
 ## 🛠️ Admin-Panel
 
-Erreichbar unter **`http://deine-ip:4455/admin`** .
+Erreichbar unter **`http://deine-ip:4455/admin`** . Ggf. Passwort einloggen.
 
 | Bereich | Funktion |
 |---|---|
@@ -103,6 +105,8 @@ Erreichbar unter **`http://deine-ip:4455/admin`** .
 | 🖼️ **Hintergründe** | Unsplash-Query, eigene Bilder per Drag & Drop, Helligkeit & Intervall |
 | ⚙️ **Anzeige** | Wetter / Kalender / Sekunden ein-/ausblenden |
 | 🌤️ **Wetter** | Stadt und OpenWeatherMap API Key setzen |
+
+Du kannst die Dashboard-UI auch selbst erweitern oder die vorhandene Struktur anpassen. Alle Dateien sind im Ordner `app/static/admin.*`.
 
 ### Verfügbare Themes
 
