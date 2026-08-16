@@ -59,7 +59,13 @@
       grid-area: weather;
       text-align: right;
       align-self: start;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
     }
+    #forecast-block { max-width: 100%; }
+    #forecast-list { list-style:none; padding:0; display:flex; gap:10px; justify-content:flex-end; }
+    .forecast-item { text-align:center; flex:1; min-width:64px; padding:8px; border-radius:8px; background:rgba(255,255,255,0.05); }
     #weather-temp { font-size: 2.5rem; font-weight: 700; }
     #weather-desc { font-size: 1rem; opacity: .75; margin-top: 4px; }
     #weather-icon { font-size: 2rem; }
@@ -162,6 +168,9 @@
     /* ── SCROLLBAR ── */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 4px; }
+    #forecast-list { list-style:none; padding:0; display:flex; gap:10px; justify-content:space-around; }
+    .forecast-item { text-align:center; flex:1; padding:8px; border-radius:8px; background:rgba(255,255,255,0.05); }
+    #event-list h3 { margin:16px 0 8px 0; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px; opacity:0.6; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px; }
   </style>
 </head>
 <body class="theme-classic">
@@ -179,9 +188,9 @@
     <div id="weather-icon"></div>
     <div id="weather-temp"></div>
     <div id="weather-desc"></div>
-  </div>
-  <div id="forecast-block" style="margin-top:8px;">
-    <ul id="forecast-list" style="display:flex;gap:12px;list-style:none;margin:0;padding:0;"></ul>
+    <div id="forecast-block" style="margin-top:8px;">
+      <ul id="forecast-list" style="display:flex;gap:12px;list-style:none;margin:0;padding:0;"></ul>
+    </div>
   </div>
 
   <div id="calendar-block">
@@ -371,6 +380,42 @@ async function loadWeather() {
     document.getElementById('weather-icon').textContent = icons[d.weather?.[0]?.icon] || '🌡️';
     document.getElementById('weather-temp').textContent = Math.round(d.main?.temp) + '°C';
     document.getElementById('weather-desc').textContent = d.weather?.[0]?.description || '';
+    loadForecast();
+  } catch(e) {}
+}
+
+// ── FORECAST (nächste Tage) ────────────────────────────
+const FORECAST_ICONS = {
+  '01d':'☀️','01n':'🌙','02d':'⛅','02n':'☁️','03d':'☁️','03n':'☁️',
+  '04d':'☁️','04n':'☁️','09d':'🌧️','09n':'🌧️','10d':'🌦️','10n':'🌧️',
+  '11d':'⛈️','11n':'⛈️','13d':'❄️','13n':'❄️','50d':'🌫️','50n':'🌫️'
+};
+
+async function loadForecast() {
+  if (CONFIG.show_weather === false || CONFIG.show_weather === 'false') return;
+  try {
+    const r = await fetch('/api/weather/forecast');
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.error || !d.forecast?.length) return;
+    const list = document.getElementById('forecast-list');
+    if (!list) return;
+    list.innerHTML = '';
+    d.forecast.forEach(day => {
+      const li = document.createElement('li');
+      li.className = 'forecast-item';
+      const dt  = new Date(day.date);
+      const dStr = new Intl.DateTimeFormat('de-DE', {
+        timeZone: CONFIG.timezone || 'Europe/Berlin',
+        weekday:'short', day:'numeric'
+      }).format(dt);
+      li.innerHTML = `
+        <div style="font-size:.8rem;opacity:.8">${dStr}</div>
+        <div style="font-size:1.6rem;margin:2px 0">${FORECAST_ICONS[day.icon] || '🌡️'}</div>
+        <div style="font-weight:600">${Math.round(day.temp_max)}°</div>
+        <div style="font-size:.75rem;opacity:.65">${Math.round(day.temp_min)}°</div>`;
+      list.appendChild(li);
+    });
   } catch(e) {}
 }
 
@@ -389,28 +434,52 @@ async function loadEvents() {
     const d = await r.json();
     const list = document.getElementById('event-list');
     list.innerHTML = '';
-    (d.events || []).forEach(ev => {
-      const li = document.createElement('li');
-      const color = EVENT_COLORS[ev.color] || CONFIG.accent_color || '#4caf50';
-      const dot = `<span class="ev-color" style="background:${color}"></span>`;
-      let timeStr = '';
-      if (!ev.allDay && ev.start) {
-        const tz = CONFIG.timezone || 'Europe/Berlin';
-        const dt = new Date(ev.start);
-        timeStr = new Intl.DateTimeFormat('de-DE', {
-          timeZone: tz, hour:'2-digit', minute:'2-digit',
-          day:'numeric', month:'short'
-        }).format(dt);
-      } else if (ev.allDay && ev.start) {
-        const parts = ev.start.split('-');
-        timeStr = `${parts[2]}.${parts[1]}. – ganztägig`;
-      }
-      li.innerHTML = `<div class="ev-title">${dot}${ev.title}</div><div class="ev-time">${timeStr}</div>`;
-      list.appendChild(li);
-    });
-    if (!d.events?.length) {
+
+    const events = d.events || [];
+    if (!events.length) {
       list.innerHTML = '<li style="opacity:.5;font-style:italic">Keine anstehenden Termine</li>';
+      return;
     }
+
+    const tz = CONFIG.timezone || 'Europe/Berlin';
+    // Gruppen nach Datum (YYYY-MM-DD) aufbauen
+    const grouped = {};
+    events.forEach(ev => {
+      if (!ev.start) return;
+      let dateKey;
+      if (ev.allDay) {
+        dateKey = ev.start.split('T')[0];
+      } else {
+        dateKey = new Intl.DateTimeFormat('en-CA', { timeZone: tz }).format(new Date(ev.start));
+      }
+      if (!grouped[dateKey]) grouped[dateKey] = [];
+      grouped[dateKey].push(ev);
+    });
+
+    Object.keys(grouped).sort().forEach(dateKey => {
+      const heading = document.createElement('h3');
+      const dt = new Date(dateKey + 'T12:00:00');
+      heading.textContent = new Intl.DateTimeFormat('de-DE', {
+        timeZone: tz, weekday:'long', day:'numeric', month:'long'
+      }).format(dt);
+      list.appendChild(heading);
+
+      grouped[dateKey].forEach(ev => {
+        const li = document.createElement('li');
+        const color = EVENT_COLORS[ev.color] || CONFIG.accent_color || '#4caf50';
+        const dot = `<span class="ev-color" style="background:${color}"></span>`;
+        let timeStr = '';
+        if (!ev.allDay && ev.start) {
+          timeStr = new Intl.DateTimeFormat('de-DE', {
+            timeZone: tz, hour:'2-digit', minute:'2-digit'
+          }).format(new Date(ev.start));
+        } else if (ev.allDay) {
+          timeStr = 'ganztägig';
+        }
+        li.innerHTML = `<div class="ev-title">${dot}${ev.title}</div><div class="ev-time">${timeStr}</div>`;
+        list.appendChild(li);
+      });
+    });
   } catch(e) {}
 }
 
