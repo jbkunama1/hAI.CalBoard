@@ -276,16 +276,28 @@
       <div class="card">
         <div style="display:flex;flex-direction:column;gap:10px">
           <div class="inline-group">
-            <label>Wetter anzeigen</label>
-            <label class="toggle"><input type="checkbox" id="s_show_weather"><span class="slider"></span></label>
+            <label>OnThisDay anzeigen</label>
+            <label class="toggle"><input type="checkbox" id="s_show_onthisday"><span class="slider"></span></label>
+          </div>
+          <div class="form-group" style="margin-top:4px">
+            <label>OnThisDay Sprache (de/en)</label>
+            <input type="text" class="form-input" id="s_onthisday_language" placeholder="de">
           </div>
           <div class="inline-group">
-            <label>Kalender anzeigen</label>
-            <label class="toggle"><input type="checkbox" id="s_show_calendar"><span class="slider"></span></label>
+            <label>FHEM anzeigen</label>
+            <label class="toggle"><input type="checkbox" id="s_show_fhem"><span class="slider"></span></label>
           </div>
-          <div class="inline-group">
-            <label>Sekunden anzeigen</label>
-            <label class="toggle"><input type="checkbox" id="s_show_seconds"><span class="slider"></span></label>
+          <div class="form-group" style="margin-top:4px">
+            <label>FHEM URL</label>
+            <input type="text" class="form-input" id="s_fhem_url" placeholder="http://.../fhem">
+          </div>
+          <div class="form-group">
+            <label>FHEM User</label>
+            <input type="text" class="form-input" id="s_fhem_user" placeholder="fhem">
+          </div>
+          <div class="form-group">
+            <label>FHEM Passwort</label>
+            <input type="password" class="form-input" id="s_fhem_password" placeholder="">
           </div>
           <div class="form-group" style="margin-top:4px">
             <label>Max. Events: <span class="range-val" id="v_max_events">8</span></label>
@@ -696,7 +708,13 @@ async function saveDisplay() {
     show_weather:  document.getElementById('s_show_weather').checked,
     show_calendar: document.getElementById('s_show_calendar').checked,
     show_seconds:  document.getElementById('s_show_seconds').checked,
-    max_events:    document.getElementById('s_max_events').value
+    max_events:    document.getElementById('s_max_events').value,
+    show_onthisday: document.getElementById('s_show_onthisday').checked,
+    onthisday_language: document.getElementById('s_onthisday_language').value,
+    show_fhem: document.getElementById('s_show_fhem').checked,
+    fhem_url: document.getElementById('s_fhem_url').value,
+    fhem_user: document.getElementById('s_fhem_user').value,
+    fhem_password: document.getElementById('s_fhem_password').value
   });
 }
 

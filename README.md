@@ -84,6 +84,8 @@ Wenn noch nichts eingerichtet ist, leitet der Server automatisch auf **`/admin`*
 | 📅 **Monatsansicht** | DAKboard-artiger Monatskalender mit farbigen Event-Chips |
 | 🌅 **5-Tage- Wettervorhersage** | Min/Max Temperatur, Icons, Beschreibungen pro Tag |
 | 🗂️ **Kalender-Gruppierung** | Events pro Tag sortiert & gruppiert mit Tagesüberschrift |
+| 📜 **On This Day** | Wikipedia historische Ereignisse, 3x täglich wechselnd |
+| 🏠 **FHEM Integration** | Sensoren & Aktoren aus FHEM Home-Automation anzeigen |
 | 🐳 **Docker-Ready** | Fertiges GHCR-Image, läuft als Container auf Port `4455` |
 | 🌐 **GitHub Pages** | Promotion-Index + Live-Demo automatisch deployt |
 | 🔒 **Sicher** | `.env` nie im Repo, Refresh Token lokal, kein Fallback-Passwort |
@@ -165,6 +167,10 @@ Du kannst die Dashboard-UI auch selbst erweitern oder die vorhandene Struktur an
 | `CALENDAR_IDS` | ⭕ | Optional, wird im Admin überschrieben |
 | `OPENWEATHER_API_KEY` | ⭕ | Optional, kann im Admin gesetzt werden |
 | `CITY` | ⭕ | Optional, Standardstadt fürs Wetter |
+| `ONTHISDAY_LANGUAGE` | ⭕ | Optional, Wikipedia-Sprache für OnThisDay (`de` Standard) |
+| `FHEM_URL` | ⭕ | Optional, FHEM JSON-API-URL, z. B. `http://fhem:8083/fhem` |
+| `FHEM_USER` | ⭕ | Optional, FHEM Login-Benutzer (Standard `fhem`) |
+| `FHEM_PASSWORD` | ⭕ | Optional, FHEM Login-Passwort |
 
 ---
 

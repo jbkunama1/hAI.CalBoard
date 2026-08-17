@@ -54,10 +54,17 @@ DEFAULT_SETTINGS = {
     'theme_padding': '36',
     'theme_event_gap': '8',
     'theme_layout_preset': 'time-top',
+    'show_onthisday': True,
+    'onthisday_language': os.environ.get('ONTHISDAY_LANGUAGE', 'de'),
+    'show_fhem': True,
+    'fhem_url': os.environ.get('FHEM_URL', ''),
+    'fhem_user': os.environ.get('FHEM_USER', 'fhem'),
+    'fhem_password': os.environ.get('FHEM_PASSWORD', ''),
 }
 
 _settings_cache = None
 _settings_lock = threading.Lock()
+_onthisday_cache = {}
 
 def load_settings():
     global _settings_cache
@@ -110,8 +117,89 @@ def logout():
     session.clear()
     return jsonify({'ok': True})
 
-@app.route('/api/settings', methods=['GET'])
-def public_settings():
+@app.route('/api/onthisday')
+def onthisday():
+    """Return three daily rotating Wikipedia OnThisDay events."""
+    import datetime, json, random
+    s = load_settings()
+    tz = s.get('timezone') or 'Europe/Berlin'
+    try:
+        now = datetime.datetime.now(ZoneInfo(tz))
+    except Exception:
+        now = datetime.datetime.now(datetime.timezone.utc)
+    month, day = now.month, now.day
+
+    # Use cache: key = f'{month}-{day}'
+    cache_key = f'{month}-{day}'
+    with _settings_lock:
+        if cache_key not in _onthisday_cache:
+            try:
+                resp = requests.get(
+                    f'https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/{month}/{day}',
+                    timeout=5
+                )
+                resp.raise_for_status()
+                data = resp.json()
+                events = [
+                    {
+                        'year': e['year'],
+                        'heading': e['title'],
+                        'text': e['description']
+                    }
+                    for e in data.get('events', [])
+                ]
+                # 3x daily rotation: pick based on 8-hour slot so we show
+                # different events in the morning, afternoon and evening.
+                slot = now.hour // 8
+                start = (slot * 2) % len(events) if events else 0
+                _onthisday_cache[cache_key] = [events[(start + i) % len(events)] for i in range(min(3, len(events)))]
+            except Exception as e:
+                _onthisday_cache[cache_key] = []
+    result = {
+        'date': f'{month}-{day}',
+        'language': s.get('onthisday_language') or 'de',
+        'events': _onthisday_cache[cache_key]
+    }
+    return jsonify(result)
+
+@app.route('/api/fhem')
+def fhem():
+    """Return a filtered list of FHEM JSON API readings."""
+    s = load_settings()
+    fhem_url = s.get('fhem_url', '')
+    fhem_user = s.get('fhem_user', '')
+    fhem_password = s.get('fhem_password', '')
+    # No config -> disabled
+    if not fhem_url:
+        return jsonify({'enabled': False}), 200
+    auth = None
+    if fhem_user and fhem_password:
+        auth = (fhem_user, fhem_password)
+    try:
+        r = requests.get(f'{fhem_url}?cmd=jsonlist2', auth=auth, timeout=5)
+        r.raise_for_status()
+        raw = r.json()
+    except Exception:
+        return jsonify({'enabled': False}), 200
+    result = []
+    for d in raw.get('Results') or []:
+        readings = d.get('Readings', {})
+        picked = {}
+        for name, meta in readings.items():
+            # Keep only sensor/information we want to display
+            if any(t in name.lower() for t in ('temperature', 'humidity', 'door', 'weather', 'pressure')):
+                picked[name] = meta.get('Value', '')
+        if picked:
+            result.append({'name': d.get('Name', '?'), 'type': d.get('Type', ''), 'readings': picked})
+    ret = {
+        'enabled': True,
+        'devices': result,
+        'url': fhem_url
+    }
+    return jsonify(ret)
+
+@app.route('/api/settings')
+def settings():
     s = load_settings()
     safe_keys = [
         'font_family', 'font_size_time', 'font_size_date', 'font_size_events',
@@ -122,6 +210,8 @@ def public_settings():
         'theme_time_color', 'theme_date_color', 'theme_event_bg',
         'theme_accent_opacity', 'theme_padding', 'theme_event_gap',
         'theme_layout_preset',
+        'show_onthisday', 'onthisday_language', 'show_fhem',
+        'fhem_url', 'fhem_user', 'fhem_password',
     ]
     return jsonify({k: s[k] for k in safe_keys if k in s})
 

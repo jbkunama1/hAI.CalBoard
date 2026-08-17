@@ -98,6 +98,8 @@
     <div class="card"><div class="icon">🖼️</div><h3>Hintergrundwechsel</h3><p>Picsum, Unsplash API, Bing Daily oder eigene Bilder – Intervall frei wählbar.</p></div>
     <div class="card"><div class="icon">🎨</div><h3>Themes &amp; Presets</h3><p>Classic, Month, Focus, Weather, Compact, Split + Layout-Presets via CSS-Variablen.</p></div>
     <div class="card"><div class="icon">📅</div><h3>Monatsansicht</h3><p>DAKboard-artiger Kalender mit farbigen Event-Chips für den Überblick.</p></div>
+    <div class="card"><div class="icon">📜</div><h3>On This Day</h3><p>Wikipedia-Startseite liefert historische Ereignisse des Tages – 3x täglich neu.</p></div>
+    <div class="card"><div class="icon">🏠</div><h3>FHEM Integration</h3><p>Zeigt Temperatur, Luftfeuchte &amp; mehr aus deiner FHEM Home-Automation.</p></div>
     <div class="card"><div class="icon">🐳</div><h3>Docker &amp; GHCR</h3><p>Fertiges Image auf ghcr.io, Workflow veröffentlicht bei Pushes auf <code>main</code> und SemVer-Tags.</p></div>
     <div class="card"><div class="icon">🛠️</div><h3>Admin-Panel</h3><p>Passwortgeschütztes Web-UI unter <code>/admin</code> – alles ohne Code konfigurierbar.</p></div>
   </section>
@@ -131,6 +133,10 @@ services:
       # CALENDAR_IDS: "primary"
       # OPENWEATHER_API_KEY: ""
       # CITY: "Pfinztal"
+      # ONTHISDAY_LANGUAGE: "de"
+      # FHEM_URL: "http://192.168.1.10:8083/fhem"
+      # FHEM_USER: "fhem"
+      # FHEM_PASSWORD: ""
     volumes:
       - calboard_data:/data
     networks:

@@ -96,8 +96,8 @@
     body.theme-compact #app { padding: var(--app-padding, 36px); }
 
     /* ── EVENT CARDS ── */
-    #event-list li {
-      background: rgba(255,255,255,.1);
+    #event-list li { 
+          background: var(--event-bg, rgba(255,255,255,.1));
       backdrop-filter: blur(10px);
       border-radius: 10px;
       padding: 10px 14px;
@@ -112,6 +112,20 @@
     .ev-title { font-weight: 600; }
     .ev-time  { font-size: .85em; opacity: .7; }
     .ev-color { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display: inline-block; margin-right: 6px; }
+
+        /* ── ON THIS DAY & FHEM ── */
+        #onthisday-list li, #fhem-list li {
+          background: var(--event-bg, rgba(255,255,255,.1));
+          backdrop-filter: blur(10px);
+          border-radius: 10px;
+          padding: 10px 14px;
+          font-size: var(--fs-events, 1rem);
+          border: 1px solid rgba(255,255,255,.08);
+        }
+        #onthisday-list .otd-year { font-weight: 700; color: var(--accent, #4caf50); margin-right: 8px; }
+        #onthisday-list .otd-text { opacity: .8; }
+        #fhem-list .fhem-name { font-weight: 600; }
+        #fhem-list .fhem-reading { display:flex; justify-content:space-between; opacity:.8; font-size:.85em; }
 
     /* ── THEMES ── */
     /* Classic (default) */
@@ -195,7 +209,15 @@
 
   <div id="calendar-block">
     <ul id="event-list"></ul>
-  </div>
+      <div id="onthisday-block" style="display:none;margin-top:16px;">
+        <h3 style="margin:0 0 8px 0;font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;opacity:0.6;">📜 An diesem Tag</h3>
+        <ul id="onthisday-list" style="list-style:none;display:flex;flex-direction:column;gap:var(--event-gap,8px);"></ul>
+      </div>
+      <div id="fhem-block" style="display:none;margin-top:16px;">
+        <h3 style="margin:0 0 8px 0;font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;opacity:0.6;">🏠 FHEM Sensoren</h3>
+        <ul id="fhem-list" style="list-style:none;display:flex;flex-direction:column;gap:var(--event-gap,8px);"></ul>
+      </div>
+    </div>
 </div>
 
 <script>
@@ -243,6 +265,12 @@ async function loadConfig() {
   if (S.show_calendar === false || S.show_calendar === 'false') {
     document.getElementById('calendar-block').style.display = 'none';
   }
+    if (S.show_onthisday === false || S.show_onthisday === 'false') {
+      document.getElementById('onthisday-block').style.display = 'none';
+    }
+    if (S.show_fhem === false || S.show_fhem === 'false') {
+      document.getElementById('fhem-block').style.display = 'none';
+    }
 
   // Hintergrund
   setupBackground();
@@ -483,6 +511,11 @@ async function loadEvents() {
   } catch(e) {}
 }
 
+});
+    block.style.display = '';
+  } catch(e) {}
+}
+
 // ── INIT ─────────────────────────────────────────────────
 async function init() {
   await loadConfig();
@@ -492,6 +525,10 @@ async function init() {
   setInterval(loadWeather, 10 * 60 * 1000);
   loadEvents();
   setInterval(loadEvents, 5 * 60 * 1000);
+  loadOnThisDay();
+  setInterval(loadOnThisDay, 8 * 60 * 60 * 1000); // 3x daily
+  loadFhem();
+  setInterval(loadFhem, 1 * 60 * 1000); // every minute
 }
 
 init();

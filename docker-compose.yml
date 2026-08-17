@@ -17,6 +17,10 @@ services:
       - CALENDAR_IDS=${CALENDAR_IDS:-primary}
       - OPENWEATHER_API_KEY=${OPENWEATHER_API_KEY:-}
       - CITY=${CITY:-Pfinztal}
+      - ONTHISDAY_LANGUAGE=${ONTHISDAY_LANGUAGE:-de}
+      - FHEM_URL=${FHEM_URL:-}
+      - FHEM_USER=${FHEM_USER:-fhem}
+      - FHEM_PASSWORD=${FHEM_PASSWORD:-}
     volumes:
       - calboard_data:/data
     networks:
